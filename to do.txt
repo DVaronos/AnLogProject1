@@ -1,0 +1,6 @@
+to do...
+
+
+check gia emfoleumenes listes ws values sta json 
+oloklhrwse to file traversing sta dir
+apo8hkeuse ids (site//file.no)
