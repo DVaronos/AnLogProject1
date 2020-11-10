@@ -44,7 +44,7 @@ int main( int argc, char *argv[] ){
 
    char* first;
    char* second;
-   int match=0,tcount;
+   int match=0,tcount,count=0;
    SList* S=CreateSList();
 	 while (fgets(line,sizeof(line),dataw)){//Diavazei to csv file grami grami
      token=strtok(line,",");
@@ -68,6 +68,7 @@ int main( int argc, char *argv[] ){
     }
     if(match){//Ean match==1 tote ta proionta teriazounopote isagonte sthn domh
       InsertSList(S,first,second);
+      count++;
     }
     free(first);
     free(second);
@@ -86,5 +87,5 @@ int main( int argc, char *argv[] ){
   t2 = (double) times(&tb2);
   cpu_time = (double) ((tb2.tms_utime + tb2.tms_stime) -
                            (tb1.tms_utime + tb1.tms_stime));
-  printf("Run time was %lf sec (REAL time) although we used the CPU for %lf sec (CPU time).\n", (t2 - t1) / ticspersec, cpu_time / ticspersec);
+  printf("Exw %d kai Run time was %lf sec (REAL time) although we used the CPU for %lf sec (CPU time).\n",count, (t2 - t1) / ticspersec, cpu_time / ticspersec);
 }

@@ -45,7 +45,12 @@ void PrintCList(CList* L,FILE* csvfile){//Ektiponei ta proionta opos zitountai s
 
 CList* AppendCList(CList* L ,CList* N){
 	CList* T=L;
-	N=N->Next;
+	CList* Head;
+	Head=N; //To head einai h kefali ths listas N
+	N=N->Next; //O diktis N pleon dixnei ston porto komvo me dedomena ths listas N kai oxi stin kefali ths
+
+	Head->Next=NULL;
+	free(Head);	//Apodesmevo thn kefali ths listas N
 	while(L->Next!=NULL){//Pigene ston telefteo komvo ths listas L
 		L=L->Next;
 	}
@@ -82,7 +87,7 @@ TList* CreateTList(){ //Dimiourgei mia nea TList
 	return L;
 }
 
-int FindTlist(TList* L,CList* node){//Epistrefei 0 an iparxi to node sthn lista allios epistrefei 1
+int FindTList(TList* L,CList* node){//Epistrefei 0 an iparxi to node sthn lista allios epistrefei 1
 	while(L->Next!=NULL){
 		L=L->Next;
 		if(L->node==node) return 0;
@@ -173,7 +178,7 @@ CList* InsertNList(NList* L,char* product,CList* clique){//Eisagei ena neo produ
 void PrintNList(NList* L,TList* Printed,FILE* csvfile){//Ektiponei thn NList
   while(L->Next!=NULL){
     L=L->Next;
-		if(FindTlist(Printed,L->clique)){//Ean h klika pou dixnei o komvos L den exei ektipothei
+		if(FindTList(Printed,L->clique)){//Ean h klika pou dixnei o komvos L den exei ektipothei
 			PrintCList(L->clique,csvfile);
 			InsertTList(Printed,L->clique);//Vale thn klika pou dixnei o komvos L stis ektipomenes
 		}
@@ -188,7 +193,7 @@ void FreeNList(NList* L,TList* Deleted){//Apodesmevi thn NList
     T=L->Next;
     L->Next=T->Next;
     free(T->name);
-		if(FindTlist(Deleted,T->clique)){//Ean h klika pou dixnei o komvos L den exei ektipothei
+		if(FindTList(Deleted,T->clique)){//Ean h klika pou dixnei o komvos L den exei ektipothei
 			InsertTList(Deleted,T->clique);//Vale thn klika pou dixnei o komvos L stis ektipomenes
 		}
 		free(T);

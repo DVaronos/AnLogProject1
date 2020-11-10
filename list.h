@@ -30,7 +30,7 @@ typedef struct tlist{
 
 TList* CreateTList();
 
-void InsertTlist(TList* ,CList*);
+void InsertTList(TList* ,CList*);
 void FreeTList(TList* );
 void FreeeTList(TList* );
 
@@ -48,7 +48,6 @@ struct nlist{
 
 NList* CreateNList();
 
-CList* FindNListNode(NList* ,char* );
 CList* InsertNList(NList* ,char* ,CList* );
 
 void PrintNList(NList* ,TList* ,FILE* );
@@ -65,7 +64,6 @@ typedef struct ht{
 CList* HashInsert(Hash* ,char*,CList* );
 
 void HashPrint(Hash* ,TList* ,FILE* );
-void HashDelete(Hash* ,int );
 void FreeHash(Hash* ,TList* );
 
 int hash(int ,int );
