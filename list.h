@@ -1,4 +1,4 @@
-
+#include "json_read.h"
 
 typedef struct nlist NList;
 //--------------------Domh CList-----------------------------\\
@@ -40,7 +40,7 @@ int FindTList(TList* ,CList*);
 
 
 struct nlist{
-  char* name;
+  Camera* camera;
   CList* clique;
   struct nlist* Next;
 };
@@ -48,9 +48,11 @@ struct nlist{
 
 NList* CreateNList();
 
-CList* InsertNList(NList* ,char* ,CList* );
+CList* ConectNList(NList* ,char* ,CList* );
 
-void PrintNList(NList* ,TList* ,FILE* );
+void TransferNList(NList* ,TList* ,FILE* );
+void InsertNList(NList* ,Camera* );
+void PrintNList(NList* );
 void FreeNList(NList* ,TList* );
 
 //--------------------Domh Hash--------------------\\
@@ -60,10 +62,11 @@ typedef struct ht{
   NList* Head;
 }Hash;
 
+CList* HashConect(Hash* ,char*,CList* );
 
-CList* HashInsert(Hash* ,char*,CList* );
-
-void HashPrint(Hash* ,TList* ,FILE* );
+void HashTransfer(Hash* ,TList* ,FILE* );
+void HashInsert(Hash* ,Camera*  );
+void HashPrint(Hash* );
 void FreeHash(Hash* ,TList* );
 
 int hash(int ,int );
@@ -82,6 +85,8 @@ typedef struct slist{
 
 SList* CreateSList();
 
-void InsertSList(SList* ,char* ,char* );
-void PrintSList(SList* ,FILE* );
+void TransferSList(SList* ,FILE* );
+void InsertSList(SList* ,Camera* );
+void ConectSList(SList* ,char* ,char* );
+void PrintSList(SList* );
 void FreeSList(SList* );

@@ -26,7 +26,7 @@ void InsertCList(CList* L,char* product,NList* Head){//Eisagei ena neo product s
 }
 
 
-void PrintCList(CList* L,FILE* csvfile){//Ektiponei ta proionta opos zitountai sthn eksodo
+void TransferCList(CList* L,FILE* csvfile){	//Eisagi  ta proionta sto csv file
   CList* N;
   char* current;
   while(L->Next!=NULL){
@@ -34,9 +34,10 @@ void PrintCList(CList* L,FILE* csvfile){//Ektiponei ta proionta opos zitountai s
     N=L;
     current=malloc(sizeof(char)*(strlen(L->name)+1));//apothikefsi tou trexon komvou
     strcpy(current,L->name);
-    while(N->Next!=NULL){//ektiposi tou trexon komvou mazi me ton kathe ena ap tous epomenous
+    while(N->Next!=NULL){	//Eisagogi tou trexon komvou mazi me ton kathe ena ap tous epomenous
       N=N->Next;
       fprintf(csvfile,"%s, %s\n",current,N->name);
+
     }
     free(current);
   }
@@ -115,7 +116,7 @@ void FreeTList(TList* L){//Apodesmevi thn CList
   free(L);
 }
 
-void FreeeTList(TList* L){
+void FreeeTList(TList* L){  //Apodesmevi thn TList kai tis CList pou exei os dedomena
 	TList* T;
 	while(L->Next!=NULL){
     T=L->Next;
@@ -134,55 +135,68 @@ NList* CreateNList(){ /*Dimiourgei mia nea SList*/
 	NList *L;
 	L=(NList *)malloc(sizeof(NList));
 	L->Next=NULL;
-  L->name=NULL;
+  L->camera=NULL;
 	return L;
 }
 
-CList* InsertNList(NList* L,char* product,CList* clique){//Eisagei ena neo product sthn arxh ths CList
-	int i=0;
-	while(L->Next!=NULL){//Elegxos gia to an iparito product sthn lista
+void InsertNList(NList* L,Camera* camera){//Eisagei ena neo product sthn arxh ths NList
+	NList *N;
+  N=(NList*)malloc(sizeof(NList));
+  N->camera=camera;
+	N->clique=NULL;
+  N->Next=L->Next;
+  L->Next=N;
+}
+
+
+CList* ConectNList(NList* L,char* product,CList* clique){//Eisagei ena neo product sthn arxh ths CList
+	while(L->Next!=NULL){	//Vrisko ton komvo ston opio einai apothikevmeno to product
 		L=L->Next;
-		if(!strcmp(L->name,product)){
-				i=1;
+		if(!strcmp(L->camera->id,product)){
 				break;
 		}
 	}
 
-	if(i){//Ean iparxi to product sthn lista
-		if(clique!=NULL){//Ean exei dothei mia klika sthn opia prepei na valw afto kai tous komvous ths klikas tou
-			if(L->clique!=clique){//ean oi dio klikes den einai idies
-					L->clique=AppendCList(clique,L->clique);//sigxonevw tis dio klikes
+	if(L->clique==NULL){	//Ean den einai to product idi se kapia klika
+
+		if(clique==NULL){	//Ean den exei dwthei kapia klika wste na mpei ekei to product
+			L->clique=CreateCList();	//Dimiourgise mia nea klika
+			InsertCList(L->clique,product,L);	//Vale to product sthn nea klika
+		}else{	//Ean exei dothei mia klika sthn opia prepei na valw afto kai tous komvous ths klikas tou
+			L->clique=clique;	//O komvos pou einai apothikevmeno to product dixnei sthn klika pou dothike
+			InsertCList(L->clique,product,L);	//vale to product sthn klika pou dothike
+		}
+
+	}else{	//Ean to product einai idi se kapia klika
+
+		if(clique!=NULL){ //Ean exei dwthei kapia klika wste na mpei ekei to product
+			if(L->clique!=clique){	//ean oi dio klikes den einai idies
+					L->clique=AppendCList(clique,L->clique);	//sigxonevw tis dio klikes
 			}
 		}
-		return L->clique;//epistrefei thn nea klika
-	}else{//Ean den ipari to product sthn lista
 
-		NList *N;//Eisagogh tou product sto telos ths listas
-  	N=(NList*)malloc(sizeof(NList));
-  	N->name=malloc(sizeof(char)*(strlen(product)+1));
-  	strcpy(N->name,product);
-  	N->Next=NULL;
-  	L->Next=N;
-		if(clique==NULL){//Ean den exei dwthei kapia klika wste na mpei ekei to prodact
-			N->clique=CreateCList();//Dimiourgise mia nea klika
-			InsertCList(N->clique,product,N);//cale to product sthn nea klika
-		}else{//ean exei dwthei klika sthn opia prepei na mpei to product
-			N->clique=clique;//O komvos pou einai apothikevmeno to product dixnei sthn klika pou dothike
-			InsertCList(N->clique,product,N);//vale to product sthn klika pou dothike
-		}
-		return N->clique;//Epestrepse thn nea klika
 	}
+		return L->clique; //Epistrefo thn klika sthn opia evala to product
 }
 
 
-void PrintNList(NList* L,TList* Printed,FILE* csvfile){//Ektiponei thn NList
+void PrintNList(NList* L){//Ektiponei thn NList
   while(L->Next!=NULL){
     L=L->Next;
-		if(FindTList(Printed,L->clique)){//Ean h klika pou dixnei o komvos L den exei ektipothei
-			PrintCList(L->clique,csvfile);
-			InsertTList(Printed,L->clique);//Vale thn klika pou dixnei o komvos L stis ektipomenes
+		Camera_Print_Specs(L->camera);
+	}
+}
+
+void TransferNList(NList* L,TList* Transfered,FILE* csvfile){	//Metaferi ta dedomena  ths NList
+  while(L->Next!=NULL){
+    L=L->Next;
+		if(L->clique!=NULL){
+				if(FindTList(Transfered,L->clique)){//Ean h klika pou dixnei o komvos L den exei metaferthi
+						TransferCList(L->clique,csvfile);
+						InsertTList(Transfered,L->clique);//Vale thn klika pou dixnei o komvos L se aftes pou exoun metaferthei
+					}
+  		}
 		}
-  }
 }
 
 
@@ -192,12 +206,15 @@ void FreeNList(NList* L,TList* Deleted){//Apodesmevi thn NList
 
     T=L->Next;
     L->Next=T->Next;
-    free(T->name);
-		if(FindTList(Deleted,T->clique)){//Ean h klika pou dixnei o komvos L den exei ektipothei
-			InsertTList(Deleted,T->clique);//Vale thn klika pou dixnei o komvos L stis ektipomenes
+    Delete_Camera(T->camera);
+		if(T->clique!=NULL){
+			if(FindTList(Deleted,T->clique)){//Ean h klika pou dixnei o komvos L den exei ektipothei
+				InsertTList(Deleted,T->clique);//Vale thn klika pou dixnei o komvos L stis ektipomenes
+			}
 		}
 		free(T);
   }
+
   free(L);
 }
 
@@ -237,7 +254,28 @@ void FreeHash(Hash* H,TList* Deleted){//Apodesmevi to HashTable
 }
 
 
-CList* HashInsert(Hash* H,char* product,CList* Clique){ /*Eisagei enan neo product sto HashTable*/
+void HashInsert(Hash* H,Camera* camera){ /*Eisagei enan neo product sto HashTable*/
+  NList *L;
+	int i=0,j=0,in;
+	char name[20];
+
+	while(camera->id[i]!='/'){//Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
+    i++;
+  }
+	i+=2;//pigeno to i sthn thesh pou arxizei o arithmos tou proiontos
+	while(i<strlen(camera->id)){
+		name[j]=camera->id[i];
+		j++;
+		i++;
+	}
+	name[j]='\0';
+	in=atoi(name);//apothievo ton arithmo tou proiontos ston int in
+	int index=hash(in,H->size);
+  L=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
+  return InsertNList(L,camera);
+}
+
+CList* HashConect(Hash* H,char* product,CList* Clique){ /*Eisagei enan neo product sto HashTable*/
   NList *L;
 	int i=0,j=0,in;
 	char name[20];
@@ -255,14 +293,22 @@ CList* HashInsert(Hash* H,char* product,CList* Clique){ /*Eisagei enan neo produ
 	in=atoi(name);//apothievo ton arithmo tou proiontos ston int in
 	int index=hash(in,H->size);
   L=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
-  return InsertNList(L,product,Clique);
+  return ConectNList(L,product,Clique);
 }
 
-void HashPrint(Hash* H,TList* Printed,FILE* csvfile){//Ektiponei to HashTable
+void HashTransfer(Hash* H,TList* Transfered,FILE* csvfile){//Metaferi ta dedomena  tou HashTable
 	NList *L;
 	for(int i=0 ; i<H->size ; i++){
 		L=(NList*)H[i].Head;
-		PrintNList(L,Printed,csvfile);
+		TransferNList(L,Transfered,csvfile);
+	}
+}
+
+void HashPrint(Hash* H){//Ektiponei to HashTable
+	NList *L;
+	for(int i=0 ; i<H->size ; i++){
+		L=(NList*)H[i].Head;
+		PrintNList(L);
 	}
 }
 
@@ -279,119 +325,104 @@ SList* CreateSList(){ /*Dimiourgei mia nea SList*/
 }
 
 
-void InsertSList(SList* L,char* first,char* second){//Eisagei dio stixoia sthn SList
-  char site[30];
-  char* p1;
-  char* p2;
-  int f1=0,f2=0,i=0;
+void InsertSList(SList* L,Camera* camera){//Eisagei dio stixoia sthn SList
+  char s[30];
+  char* site;
+  int exist=0,i=0;
 
-  while(first[i]!='/'){//Apothikefsi tou onomatos ths istoselidas tou protou proiontos
-    site[i]=first[i];
+  while(camera->id[i]!='/'){//Apothikefsi tou onomatos ths istoselidas tou protou proiontos
+    s[i]=camera->id[i];
     i++;
   }
-  site[i]='\0';
-  p1=malloc(sizeof(char)*(strlen(site)+1));
-  strcpy(p1,site);
+  s[i]='\0';
+  site=malloc(sizeof(char)*(strlen(s)+1));
+  strcpy(site,s);
+	SList* f;
+
+  while(L->Next!=NULL && exist==0){//Elegxos an iparxoun idi oi istoselides sthn lista
+    L=L->Next;
+    if(!strcmp(site,L->name)){//An ipari h proth istoselida tote f1=1
+      exist=1;
+			f=L;
+  	}
+	}
+	if(exist){
+		HashInsert(f->products,camera);
+	}else{
+		SList* N;
+		N=(SList*)malloc(sizeof(SList));
+		N->name=malloc(sizeof(char)*(strlen(site)+1));
+		strcpy(N->name,site);
+		N->Next=NULL;
+		N->products=HashCreate(20);
+		HashInsert(N->products,camera);
+		L->Next=N;//Eimaste ston telefteo komvo ths listas opote vazoume ton komvo F sto telos
+	}
+	free(site);
+}
+
+void ConectSList(SList* L,char* first,char* second){//Eisagei dio stixoia sthn SList
+  char s[30];
+  char* site1;
+  char* site2;
+  int f1=0,s1=0,i=0;
+
+  while(first[i]!='/'){//Apothikefsi tou onomatos ths istoselidas tou protou proiontos
+    s[i]=first[i];
+    i++;
+  }
+  s[i]='\0';
+  site1=malloc(sizeof(char)*(strlen(s)+1));
+  strcpy(site1,s);
 
 	i=0;
   while(second[i]!='/'){//Apothikefsi tou onomatos ths istoselidas tou defterou proiontos
-    site[i]=second[i];
+    s[i]=second[i];
     i++;
   }
-  site[i]='\0';
-  p2=malloc(sizeof(char)*(strlen(site)+1));
-  strcpy(p2,site);
+  s[i]='\0';
+  site2=malloc(sizeof(char)*(strlen(s)+1));
+  strcpy(site2,s);
 
 	SList* fi;
 	SList* se;
-
-  while(L->Next!=NULL && (f1==0 || f2==0)){//Elegxos an iparxoun idi oi istoselides sthn lista
+  while(L->Next!=NULL && (f1==0 || s1==0)) {//Elegxos an iparxoun idi oi istoselides sthn lista
     L=L->Next;
-    if(!strcmp(p1,L->name)){//An ipari h proth istoselida tote f1=1
+    if(!strcmp(site1,L->name)){//An ipari h proth istoselida tote f1=1
       f1=1;
 			fi=L;
 
     }
-    if(!strcmp(p2,L->name)){//An ipari h defterh istoselida tote f2=1
-      f2=1;
+    if(!strcmp(site2,L->name)){//An ipari h defterh istoselida tote f2=1
+      s1=1;
 			se=L;
     }
   }
-
 	CList* clique;
-  if(!f1 && !f2){//Ean den iparxi kamia ap tis istoselides
-		 SList* F;
-		 SList* N;
 
-	   F=(SList*)malloc(sizeof(SList));//Dimiourgia enos neou komvou SList
-	   F->name=malloc(sizeof(char)*(strlen(p1)+1));
-	   strcpy(F->name,p1);
-	   F->Next=NULL;
-	   F->products=HashCreate(20);
-	   clique=HashInsert(F->products,first,NULL);//Eisagogh tou protou proiontos sto HashTable tou komvou F
+	clique=HashConect(fi->products,first,NULL);
+	HashConect(se->products,second,clique);
 
-	   L->Next=F;//Eimaste ston telefteo komvo ths listas opote vazoume ton komvo F sto telos
-	   L=L->Next;//O dixtis L dixnei ston telefteo komvo ths listas(F)
-
-		 if(!strcmp(p1,p2)){//Ean kai ta dio proionta anikoun sto idio site tote den ftiaxnw neo komvo
-			 HashInsert(F->products,second,clique);//Eisagogh tou defterou proiontos sto HashTable tou komvou F
-
-		 }else{
-			N=(SList*)malloc(sizeof(SList));
-			N->name=malloc(sizeof(char)*(strlen(p2)+1));
-			strcpy(N->name,p2);
-			N->Next=NULL;
-			N->products=HashCreate(20);
-			HashInsert(N->products,second,clique);
-			L->Next=N;//Eimaste ston telefteo komvo ths listas opote vazoume ton komvo F sto telos
- 	   	L=L->Next;//O dixtis L dixnei ston telefteo komvo ths listas(F)
-
-		 }
-	 }else if(f1 && !f2){//Ean ipari to prwto site kai oxi to deftero
-		 clique=HashInsert(fi->products,first,NULL);//Eisagogh tou protou proiontos sto HashTable tou komvou fi
-
-		 SList* N;
-		 N=(SList*)malloc(sizeof(SList));
-		 N->name=malloc(sizeof(char)*(strlen(p2)+1));
-		 strcpy(N->name,p2);
-		 N->Next=NULL;
-		 N->products=HashCreate(20);
-		 HashInsert(N->products,second,clique);//Eisagogh tou defterou proiontos sto HashTable tou komvou N
-		 L->Next=N;//Eimaste ston telefteo komvo ths listas opote vazoume ton komvo F sto telos
-		 L=L->Next;//O dixtis L dixnei ston telefteo komvo ths listas(F)
-
-	 }else if(!f1 && f2){//Ean iparxi to deftero site kai oxi to proto
-		 clique=HashInsert(se->products,second,NULL);//Eisagogh tou defterou proiontos sto HashTable tou komvou se
-
-		 SList* F;
-		 F=(SList*)malloc(sizeof(SList));
-		 F->name=malloc(sizeof(char)*(strlen(p1)+1));
-		 strcpy(F->name,p1);
-		 F->Next=NULL;
-		 F->products=HashCreate(20);
-		 HashInsert(F->products,first,clique);//Eisagogh tou protou proiontos sto HashTable tou komvou F
-
-		 L->Next=F;//Eimaste ston telefteo komvo ths listas opote vazoume ton komvo F sto telos
-		 L=L->Next;
-
-	 }else if(f1 && f1){//Ean iparoun kai ta dio site
-		 clique=HashInsert(fi->products,first,NULL);
-		 HashInsert(se->products,second,clique);
-	 }
-
-	free(p1);
-	free(p2);
+	free(site1);
+	free(site2);
 
 }
 
 
-void PrintSList(SList* L,FILE* csvfile){//Ektiponei thn SList
-	TList* Printed=CreateTList();//Lista opou tha apothikevontai oi idi ektipomenes klikes
+void PrintSList(SList* L){//Ektiponei thn SList
   while(L->Next!=NULL){
     L=L->Next;
-		HashPrint(L->products,Printed,csvfile);
+		HashPrint(L->products);
   }
-	FreeTList(Printed);
+}
+
+void TransferSList(SList* L,FILE* csvfile){	//Metaferei ta dedomena ths SList
+	TList* Transfered=CreateTList();	//Lista opou tha apothikevontai oi klikes pou exoun idi metaferthei so csv file
+  while(L->Next!=NULL){
+    L=L->Next;
+		HashTransfer(L->products,Transfered,csvfile);
+  }
+	FreeTList(Transfered);
 }
 
 
