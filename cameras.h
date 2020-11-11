@@ -65,7 +65,7 @@ typedef struct Camera
 
 
 Camera* Camera_Init(char* name);
-Camera* Read_Camera(FILE* fp, Camera* C);
+void Read_Camera(FILE* fp, Camera* C);
 
 void Camera_Print_Id(Camera* camera);
 void Camera_Print_Specs(Camera* camera);
