@@ -253,8 +253,7 @@ Camera* Camera_Init(char* name)
 	return camera;
 }
 
-
-Camera* Read_Camera(FILE* fp, Camera* C)
+void Read_Camera(FILE* fp, Camera* C)
 {
 	int value_is_list=0;
 	int c;
