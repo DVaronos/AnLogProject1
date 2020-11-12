@@ -1,5 +1,5 @@
 #include "acutest.h"
-#include "cameras.h"
+#include "../cameras.h"
 
 void test_Value_Node_Init(void)
 {
@@ -29,7 +29,7 @@ void test_Add_to_value_list(void)
 
 	Add_to_value_list(vl, vn);
 
-	// testing first add 
+	// testing first add
 	TEST_ASSERT(vl->first == vn);
 	TEST_ASSERT(vl->last == vn);
 
@@ -44,7 +44,7 @@ void test_Add_to_value_list(void)
 		TEST_ASSERT(vl->first != vn);
 		// its added at the end
 		TEST_ASSERT(vl->last == vn);
-		// its connected to the previous last node of the list 
+		// its connected to the previous last node of the list
 		TEST_ASSERT(vn_ptr->next == vn);
 		vn_ptr = vn_ptr->next;
 	}
@@ -102,7 +102,7 @@ void test_Specs_Add_Node(void)
 		TEST_ASSERT(sl->first != sn);
 		// its added at the end
 		TEST_ASSERT(sl->last == sn);
-		// its connected to the previous last node of the list 
+		// its connected to the previous last node of the list
 		TEST_ASSERT(sn_ptr->next == sn);
 		sn_ptr = sn_ptr->next;
 	}
@@ -131,6 +131,5 @@ TEST_LIST ={
 	{"Spec_List_Init", test_Spec_List_Init},
 	{"Specs_Add_Node", test_Specs_Add_Node},
 	{"Camera_Init", test_Camera_Init},
-	{"Read_Camera", test_Read_Camera},
 	{NULL,NULL}
 };

@@ -13,11 +13,33 @@ void test_create(void){
 void test_insert(void){
   TList* T=CreateTList();
 
-  CList* C=CreateCList();
-  InsertCList(C,"test",NULL);
+  int i;
+  char c;
+  char* test;
+  char t[10]="test";
+  for(i=0 ; i<5 ; i++){ //eisagw 5 komvous sthn TList
+    c=i+'0';
 
-  InsertTList(T,C);
-  TEST_ASSERT(T->Next!=NULL);
+    test=malloc(sizeof(char)*(strlen(t)+2));  //Dimiourgo ena string "testi" opou anti gia i o arithmos tou i se kathe epanalipsi
+    strcpy(test,t);
+    strncat(test,&c,1);
+    CList* C=CreateCList();
+    InsertCList(C,test,NULL);
+    InsertTList(T,C);
+
+    free(test);
+  }
+
+  i=0;
+  TList* P=T;
+  while(P->Next!=NULL){ //Metrao tous komvous pou exoun isagxthei sthn TList
+    P=P->Next;
+    i++;
+  }
+
+  TEST_ASSERT(i==5); //Tsekaro an exoun isagxthei osoi komvoi evala
+
+
 
   FreeeTList(T);
 }
