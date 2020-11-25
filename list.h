@@ -1,12 +1,14 @@
 #include "json_read.h"
 
 typedef struct nlist NList;
+typedef struct tlist TList;
 //--------------------Domh CList-----------------------------\\
 
 
 typedef struct clist{
   char* name;
   NList* Head;
+  TList* Diffrend;
   struct clist* Next;
 }CList;
 
@@ -17,7 +19,8 @@ CList* AppendCList(CList* ,CList* );
 void InsertCList(CList* ,char* ,NList* );
 void PrintCList(CList* ,FILE* );
 void FreeCList(CList* );
-
+void Diff(CList* ,CList* );
+void DiffCList(CList* );
 
 //--------------------Domh TList-----------------------------\\
 
@@ -33,6 +36,7 @@ TList* CreateTList();
 void InsertTList(TList* ,CList*);
 void FreeTList(TList* );
 void FreeeTList(TList* );
+void ReplaceTList(TList* ,CList* ,CList* );
 
 int FindTList(TList* ,CList*);
 
@@ -54,39 +58,4 @@ void TransferNList(NList* ,TList* ,FILE* );
 void InsertNList(NList* ,Camera* );
 void PrintNList(NList* );
 void FreeNList(NList* ,TList* );
-
-//--------------------Domh Hash--------------------\\
-
-typedef struct ht{
-  int size;
-  NList* Head;
-}Hash;
-
-CList* HashConect(Hash* ,char*,CList* );
-
-void HashTransfer(Hash* ,TList* ,FILE* );
-void HashInsert(Hash* ,Camera*  );
-void HashPrint(Hash* );
-void FreeHash(Hash* ,TList* );
-
-int hash(int ,int );
-
-Hash* HashCreate(int );
-
-//--------------------Domh SList-----------------------------\\
-
-
-typedef struct slist{
-  char* name;
-  Hash* products;
-  struct slist* Next;
-}SList;
-
-
-SList* CreateSList();
-
-void TransferSList(SList* ,FILE* );
-void InsertSList(SList* ,Camera* );
-void ConectSList(SList* ,char* ,char* );
-void PrintSList(SList* );
-void FreeSList(SList* );
+void DiffNList(NList* ,TList *);

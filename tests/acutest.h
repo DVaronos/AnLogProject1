@@ -102,7 +102,7 @@
     do {                                                                       \
         if (!test_check__((cond), __FILE__, __LINE__, __VA_ARGS__))            \
             test_abort__();                                                    \
-    } while(0)                                                                 
+    } while(0)
 #define TEST_ASSERT(cond)                                                      \
     do {                                                                       \
         if (!test_check__((cond), __FILE__, __LINE__, "%s", #cond))            \

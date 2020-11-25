@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <sys/times.h>
 #include <dirent.h>
-#include "list.h"
+#include "hash.h"
 
 int main( int argc, char *argv[] ){
 
@@ -63,7 +63,7 @@ int main( int argc, char *argv[] ){
    char* newfile;
    char* newdir;
    char* newid;
-   SList* S=CreateSList();
+   Hash* H=HashCreate(1000);
 
    while( new_directory=readdir(directory) ){ //Diavazw to periexomeno tou fakelou pou dothike(diladi tous ipofakelous)
 
@@ -97,8 +97,7 @@ int main( int argc, char *argv[] ){
 
                       Camera *camera = Camera_Init(newid); //Dimiourgo mia kamera me id newid
                       Read_from_JSON_file(newfile, camera); //Eisagw sthn kamera ta stixeia tou json arxeiou
-
-                      InsertSList(S,camera); //Eisagw thn kamera sthn domh mou
+                      H=HashInsert(H,camera); //Eisagw thn kamera sthn domh mou
 
                       free(newfile);
                       free(newid);
@@ -113,9 +112,10 @@ int main( int argc, char *argv[] ){
 
    char* first;
    char* second;
-   int match=0,tcount,count=0;
+   int match=0,tcount;
 	 while (fgets(line,sizeof(line),dataw)){//Diavazei to csv file grami grami
      token=strtok(line,",");
+     if(!strcmp(token,"left_spec_id"))  continue;
      tcount=0;
      while(token!=NULL){//apothikefsi tou kathe stixoiou ths gramhs se metavlites
       tcount++;
@@ -134,10 +134,7 @@ int main( int argc, char *argv[] ){
       }
       token=strtok(NULL,",");
     }
-    if(match){//Ean match==1 tote ta proionta teriazounopote isagonte sthn domh
-      ConectSList(S,first,second);
-      count++;
-    }
+    HashConect(H,first,second,match);
     free(first);
     free(second);
 	}
@@ -145,11 +142,11 @@ int main( int argc, char *argv[] ){
   csvfile=fopen("Data.csv","w+"); //Dimiourgw ena neo csv arxio
   fprintf(csvfile,"left_spec_id, right_spec_id\n");
 
-  TransferSList(S,csvfile); //Pernaw ta teriasmata sto csv arxio
+  HashTransfer(H,csvfile); //Pernaw ta teriasmata sto csv arxio
 
   //Apodesmevi twn domwn
 
-  FreeSList(S);
+  FreeHash(H);
   free(wfile);
   free(dd);
   fclose(dataw);

@@ -11,6 +11,7 @@ CList* CreateCList(){ //Dimiourgei mia nea CList
 	L=(CList *)malloc(sizeof(CList));
 	L->Next=NULL;
   L->name=NULL;
+	L->Diffrend=NULL;
 	return L;
 }
 
@@ -43,13 +44,55 @@ void TransferCList(CList* L,FILE* csvfile){	//Eisagi  ta proionta sto csv file
   }
 }
 
+void DiffCList(CList* L){	//Eisagi  ta proionta sto csv file
+  TList* N;
+  char* current;
+  while(L->Diffrend->Next!=NULL){
+    L=L->Next;
+    N=L->Diffrend;
+    current=malloc(sizeof(char)*(strlen(L->name)+1));//apothikefsi tou trexon komvou
+    strcpy(current,L->name);
+    while(N->Next!=NULL){	//Eisagogi tou trexon komvou mazi me ton kathe ena ap tous epomenous
+      N=N->Next;
+      printf("%s, %s\n",current,N->node->name);
+
+    }
+    free(current);
+  }
+}
+
+void Diff(CList* F,CList* S){
+	if(F->Diffrend==NULL){	//Ean h Diffrend ths F einai NULL dimiourgisethn kai vale mesa thn S
+		F->Diffrend=CreateTList();
+		InsertTList(F->Diffrend,S);
+	}else{ //Allios an h S den einai mesa sthn Diffrend ths F vale thn mesa
+		if(FindTList(F->Diffrend,S)) InsertTList(F->Diffrend,S);
+	}
+
+	if(S->Diffrend==NULL){//Ean h Diffrend ths S einai NULL dimiourgisethn kai vale mesa thn F
+		S->Diffrend=CreateTList();
+		InsertTList(S->Diffrend,F);
+	}else{//Allios an h F den einai mesa sthn Diffrend ths S vale thn mesa
+		if(FindTList(S->Diffrend,F)) InsertTList(S->Diffrend,F);
+	}
+}
+
 
 CList* AppendCList(CList* L ,CList* N){
 	CList* T=L;
 	CList* Head;
 	Head=N; //To head einai h kefali ths listas N
 	N=N->Next; //O diktis N pleon dixnei ston porto komvo me dedomena ths listas N kai oxi stin kefali ths
-
+	if(Head->Diffrend!=NULL){
+		TList* Temp=Head->Diffrend;
+		while(Temp->Next!=NULL){
+			Temp=Temp->Next;
+			if(L->Diffrend==NULL) L->Diffrend=CreateTList();
+			InsertTList(L->Diffrend,Temp->node);
+			ReplaceTList(Temp->node->Diffrend,Head,L);
+		}
+		FreeTList(Head->Diffrend);
+	}
 	Head->Next=NULL;
 	free(Head);	//Apodesmevo thn kefali ths listas N
 	while(L->Next!=NULL){//Pigene ston telefteo komvo ths listas L
@@ -66,6 +109,10 @@ CList* AppendCList(CList* L ,CList* N){
 
 void FreeCList(CList* L){//Apodesmevi thn CList
   CList* T;
+	if(L->Diffrend!=NULL){
+		FreeTList(L->Diffrend);
+		L->Diffrend=NULL;
+	}
   while(L->Next!=NULL){
     T=L->Next;
     L->Next=T->Next;
@@ -127,6 +174,15 @@ void FreeeTList(TList* L){  //Apodesmevi thn TList kai tis CList pou exei os ded
   free(L);
 }
 
+void ReplaceTList(TList* T,CList* P,CList* N){
+	while(T->Next!=NULL){
+		T=T->Next;
+		if(T->node==P){
+			T->node=N;
+			break;
+		}
+	}
+}
 
 //--------------------Sinartiseis gia thn domh NList-----------------------------\\
 
@@ -199,14 +255,24 @@ void TransferNList(NList* L,TList* Transfered,FILE* csvfile){	//Metaferi ta dedo
 		}
 }
 
+void DiffNList(NList* L,TList* Transfered){	//Metaferi ta dedomena  ths NList
+  while(L->Next!=NULL){
+    L=L->Next;
+		if(L->clique!=NULL){
+				if(FindTList(Transfered,L->clique)){//Ean h klika pou dixnei o komvos L den exei metaferthi
+						DiffCList(L->clique);
+						InsertTList(Transfered,L->clique);//Vale thn klika pou dixnei o komvos L se aftes pou exoun metaferthei
+					}
+  		}
+		}
+}
 
 void FreeNList(NList* L,TList* Deleted){//Apodesmevi thn NList
 	NList* T;
   while(L->Next!=NULL){
-
     T=L->Next;
     L->Next=T->Next;
-    Delete_Camera(T->camera);
+    if(T->camera!=NULL) Delete_Camera(T->camera);
 		if(T->clique!=NULL){
 			if(FindTList(Deleted,T->clique)){//Ean h klika pou dixnei o komvos L den exei ektipothei
 				InsertTList(Deleted,T->clique);//Vale thn klika pou dixnei o komvos L stis ektipomenes
@@ -214,228 +280,5 @@ void FreeNList(NList* L,TList* Deleted){//Apodesmevi thn NList
 		}
 		free(T);
   }
-
-  free(L);
-}
-
-
-//--------------------Sinartiseis gia thn domh Hash-----------------------------\\
-
-int hash(int id,int size){
-
-  id^= (id << 13);
-  id^= (id >> 17);
-  id^= (id << 5);
-  return abs(id % size);
-
-}
-
-Hash* HashCreate(int size){ //Dimiourgei ena neo HashTable megetous size
-  int i;
-	Hash *H;
-	H=(Hash* )malloc(size *  sizeof(Hash) );
-	H->size=size;
-
-  for(i=0 ; i< size ; i++){//gia kathe bucket tou HashTable dimiourgise mia nea NList
-		H[i].Head=CreateNList();
-	}
-	return H;
-}
-
-
-void FreeHash(Hash* H,TList* Deleted){//Apodesmevi to HashTable
-  int i;
-	for(i=0 ; i< H->size ; i++){
-		FreeNList(H[i].Head,Deleted);
-	}
-
-  free(H);
-
-}
-
-
-void HashInsert(Hash* H,Camera* camera){ /*Eisagei enan neo product sto HashTable*/
-  NList *L;
-	int i=0,j=0,in;
-	char name[20];
-
-	while(camera->id[i]!='/'){//Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
-    i++;
-  }
-	i+=2;//pigeno to i sthn thesh pou arxizei o arithmos tou proiontos
-	while(i<strlen(camera->id)){
-		name[j]=camera->id[i];
-		j++;
-		i++;
-	}
-	name[j]='\0';
-	in=atoi(name);//apothievo ton arithmo tou proiontos ston int in
-	int index=hash(in,H->size);
-  L=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
-  return InsertNList(L,camera);
-}
-
-CList* HashConect(Hash* H,char* product,CList* Clique){ /*Eisagei enan neo product sto HashTable*/
-  NList *L;
-	int i=0,j=0,in;
-	char name[20];
-
-	while(product[i]!='/'){//Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
-    i++;
-  }
-	i+=2;//pigeno to i sthn thesh pou arxizei o arithmos tou proiontos
-	while(i<strlen(product)){
-		name[j]=product[i];
-		j++;
-		i++;
-	}
-	name[j]='\0';
-	in=atoi(name);//apothievo ton arithmo tou proiontos ston int in
-	int index=hash(in,H->size);
-  L=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
-  return ConectNList(L,product,Clique);
-}
-
-void HashTransfer(Hash* H,TList* Transfered,FILE* csvfile){//Metaferi ta dedomena  tou HashTable
-	NList *L;
-	for(int i=0 ; i<H->size ; i++){
-		L=(NList*)H[i].Head;
-		TransferNList(L,Transfered,csvfile);
-	}
-}
-
-void HashPrint(Hash* H){//Ektiponei to HashTable
-	NList *L;
-	for(int i=0 ; i<H->size ; i++){
-		L=(NList*)H[i].Head;
-		PrintNList(L);
-	}
-}
-
-
-//--------------------Sinartiseis gia thn domh SList-----------------------------\\
-
-
-SList* CreateSList(){ /*Dimiourgei mia nea SList*/
-	SList *L;
-	L=(SList *)malloc(sizeof(SList));
-	L->Next=NULL;
-  L->name=NULL;
-	return L;
-}
-
-
-void InsertSList(SList* L,Camera* camera){//Eisagei dio stixoia sthn SList
-  char s[30];
-  char* site;
-  int exist=0,i=0;
-
-  while(camera->id[i]!='/'){//Apothikefsi tou onomatos ths istoselidas tou protou proiontos
-    s[i]=camera->id[i];
-    i++;
-  }
-  s[i]='\0';
-  site=malloc(sizeof(char)*(strlen(s)+1));
-  strcpy(site,s);
-	SList* f;
-
-  while(L->Next!=NULL && exist==0){//Elegxos an iparxoun idi oi istoselides sthn lista
-    L=L->Next;
-    if(!strcmp(site,L->name)){//An ipari h proth istoselida tote f1=1
-      exist=1;
-			f=L;
-  	}
-	}
-	if(exist){
-		HashInsert(f->products,camera);
-	}else{
-		SList* N;
-		N=(SList*)malloc(sizeof(SList));
-		N->name=malloc(sizeof(char)*(strlen(site)+1));
-		strcpy(N->name,site);
-		N->Next=NULL;
-		N->products=HashCreate(20);
-		HashInsert(N->products,camera);
-		L->Next=N;//Eimaste ston telefteo komvo ths listas opote vazoume ton komvo F sto telos
-	}
-	free(site);
-}
-
-void ConectSList(SList* L,char* first,char* second){//Eisagei dio stixoia sthn SList
-  char s[30];
-  char* site1;
-  char* site2;
-  int f1=0,s1=0,i=0;
-
-  while(first[i]!='/'){//Apothikefsi tou onomatos ths istoselidas tou protou proiontos
-    s[i]=first[i];
-    i++;
-  }
-  s[i]='\0';
-  site1=malloc(sizeof(char)*(strlen(s)+1));
-  strcpy(site1,s);
-
-	i=0;
-  while(second[i]!='/'){//Apothikefsi tou onomatos ths istoselidas tou defterou proiontos
-    s[i]=second[i];
-    i++;
-  }
-  s[i]='\0';
-  site2=malloc(sizeof(char)*(strlen(s)+1));
-  strcpy(site2,s);
-
-	SList* fi;
-	SList* se;
-  while(L->Next!=NULL && (f1==0 || s1==0)) {//Elegxos an iparxoun idi oi istoselides sthn lista
-    L=L->Next;
-    if(!strcmp(site1,L->name)){//An ipari h proth istoselida tote f1=1
-      f1=1;
-			fi=L;
-
-    }
-    if(!strcmp(site2,L->name)){//An ipari h defterh istoselida tote f2=1
-      s1=1;
-			se=L;
-    }
-  }
-	CList* clique;
-
-	clique=HashConect(fi->products,first,NULL);
-	HashConect(se->products,second,clique);
-
-	free(site1);
-	free(site2);
-
-}
-
-
-void PrintSList(SList* L){//Ektiponei thn SList
-  while(L->Next!=NULL){
-    L=L->Next;
-		HashPrint(L->products);
-  }
-}
-
-void TransferSList(SList* L,FILE* csvfile){	//Metaferei ta dedomena ths SList
-	TList* Transfered=CreateTList();	//Lista opou tha apothikevontai oi klikes pou exoun idi metaferthei so csv file
-  while(L->Next!=NULL){
-    L=L->Next;
-		HashTransfer(L->products,Transfered,csvfile);
-  }
-	FreeTList(Transfered);
-}
-
-
-void FreeSList(SList* L){//Apodesmevi thn SList
-	SList* T;
-	TList* Deleted=CreateTList();
-  while(L->Next!=NULL){
-    T=L->Next;
-    L->Next=T->Next;
-    free(T->name);
-		FreeHash(T->products,Deleted);
-    free(T);
-  }
-	FreeeTList(Deleted);
   free(L);
 }
