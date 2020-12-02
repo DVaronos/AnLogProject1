@@ -9,14 +9,13 @@ typedef struct ht{
 }Hash;
 
 void HashConect(Hash* ,char*,char* ,int );
-
 void HashTransfer(Hash* ,FILE* );
-Hash* HashInsert(Hash* ,Camera*  );
 void HashPrint(Hash* );
 void FreeHash(Hash* );
-void HashDiff(Hash* );
+void HashDiff(Hash* ,FILE* );
 
 int hash(int ,int );
 
 Hash* HashCreate(int );
+Hash* HashInsert(Hash* ,Camera*  );
 Hash* rehash(Hash* );

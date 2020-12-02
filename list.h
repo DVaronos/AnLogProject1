@@ -20,7 +20,7 @@ void InsertCList(CList* ,char* ,NList* );
 void PrintCList(CList* ,FILE* );
 void FreeCList(CList* );
 void Diff(CList* ,CList* );
-void DiffCList(CList* );
+void DiffCList(CList*,TList* ,FILE* );
 
 //--------------------Domh TList-----------------------------\\
 
@@ -37,7 +37,9 @@ void InsertTList(TList* ,CList*);
 void FreeTList(TList* );
 void FreeeTList(TList* );
 void ReplaceTList(TList* ,CList* ,CList* );
+void RemoveTList(TList* ,CList* );
 
+int CountTList(TList* );
 int FindTList(TList* ,CList*);
 
 //--------------------Domh NList-----------------------------\\
@@ -58,4 +60,4 @@ void TransferNList(NList* ,TList* ,FILE* );
 void InsertNList(NList* ,Camera* );
 void PrintNList(NList* );
 void FreeNList(NList* ,TList* );
-void DiffNList(NList* ,TList *);
+void DiffNList(NList* ,TList * ,FILE* );

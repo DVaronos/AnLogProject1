@@ -59,7 +59,7 @@ Hash* HashInsert(Hash* H,Camera* camera){ /*Eisagei enan neo product sto HashTab
   L=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
   InsertNList(L,camera);
   float n=(1.0*H->count)/H->size;
-  if(n>=0.9){
+  if(n>=0.9){ //Ean h plirotita ftasei to 90% kanei rehash
     H=rehash(H);
   }
   return H;
@@ -70,13 +70,14 @@ Hash* rehash(Hash *H){
   NList* N;
   Hash*  Temp;
   int i;
-  Temp=(Hash* )malloc( (H->size*1.5) *  sizeof(Hash) );
+  Temp=(Hash* )malloc( (H->size*1.5) *  sizeof(Hash) ); //Dimiourgo ena neo HasTable me 150% xoritikotita
   Temp->size=H->size * 1.5;
   Temp->count=0;
   for(i=0 ; i< Temp->size ; i++){
     Temp[i].Head=CreateNList();
   }
-  for(i=0 ; i< H->size ; i++){
+
+  for(i=0 ; i< H->size ; i++){  //Pernaw ta dedomena tou paliou sto neo HasTable
     N=(NList*)H[i].Head;
     while(N->Next!=NULL){
       N=N->Next;
@@ -86,6 +87,7 @@ Hash* rehash(Hash *H){
       HashInsert(Temp,camera);
     }
   }
+
   FreeHash(H);
   H=Temp;
   return H;
@@ -127,11 +129,11 @@ void HashConect(Hash* H,char* first,char* second,int match){ /*Eisagei enan neo 
   S=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
 
 
-  if(match){
+  if(match){ //Ean match ==1 ta proionta teriazoun
     CList* clique;
     clique=ConectNList(F,first,NULL);
     ConectNList(S,second,clique);
-  }else{
+  }else{ //Ean match==0 ta proionta den teriazoun
     CList* CF;
     CList* CS;
     CF=ConectNList(F,first,NULL);
@@ -142,7 +144,7 @@ void HashConect(Hash* H,char* first,char* second,int match){ /*Eisagei enan neo 
 }
 
 
-void HashTransfer(Hash* H,FILE* csvfile){//Metaferi ta dedomena  tou HashTable
+void HashTransfer(Hash* H,FILE* csvfile){//Metaferi ta proionta poy teriazoun se ena csv arxio
 	NList *L;
   TList* Transfered=CreateTList();
 	for(int i=0 ; i<H->size ; i++){
@@ -152,12 +154,13 @@ void HashTransfer(Hash* H,FILE* csvfile){//Metaferi ta dedomena  tou HashTable
   FreeTList(Transfered);
 }
 
-void HashDiff(Hash* H){//Metaferi ta dedomena  tou HashTable
+
+void HashDiff(Hash* H,FILE* csvfile){//Metaferi ta dedomena pou den teriazoun se ena csv arxio
 	NList *L;
   TList* Transfered=CreateTList();
 	for(int i=0 ; i<H->size ; i++){
 		L=(NList*)H[i].Head;
-		DiffNList(L,Transfered);
+		DiffNList(L,Transfered,csvfile);
 	}
   FreeTList(Transfered);
 }

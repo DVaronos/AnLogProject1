@@ -13,7 +13,8 @@ int main( int argc, char *argv[] ){
    struct dirent* new_directory;
    struct dirent* curfile;
    FILE *dataw;
-   FILE *csvfile;
+   FILE *scsv;
+   FILE *dcsv;
    char* wfile;
    char* dd;
    char* token=NULL;
@@ -112,7 +113,8 @@ int main( int argc, char *argv[] ){
 
    char* first;
    char* second;
-   int match=0,tcount;
+   int match=0,tcount,z=0,a=0;
+
 	 while (fgets(line,sizeof(line),dataw)){//Diavazei to csv file grami grami
      token=strtok(line,",");
      if(!strcmp(token,"left_spec_id"))  continue;
@@ -139,18 +141,22 @@ int main( int argc, char *argv[] ){
     free(second);
 	}
 
-  csvfile=fopen("Data.csv","w+"); //Dimiourgw ena neo csv arxio
-  fprintf(csvfile,"left_spec_id, right_spec_id\n");
+  scsv=fopen("Same.csv","w+"); //Dimiourgw ena neo csv arxio
+  fprintf(scsv,"left_spec_id, right_spec_id\n");
 
-  HashTransfer(H,csvfile); //Pernaw ta teriasmata sto csv arxio
+  dcsv=fopen("Diffrend.csv","w+"); //Dimiourgw ena neo csv arxio
+  fprintf(dcsv,"left_spec_id, right_spec_id\n");
 
+  HashTransfer(H,scsv); //Pernaw ta teriasmata sto csv arxio
+  HashDiff(H,dcsv);
   //Apodesmevi twn domwn
 
   FreeHash(H);
   free(wfile);
   free(dd);
   fclose(dataw);
-  fclose(csvfile);
+  fclose(scsv);
+  fclose(dcsv);
   closedir(directory);
 
 }

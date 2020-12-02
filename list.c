@@ -44,21 +44,35 @@ void TransferCList(CList* L,FILE* csvfile){	//Eisagi  ta proionta sto csv file
   }
 }
 
-void DiffCList(CList* L){	//Eisagi  ta proionta sto csv file
+void DiffCList(CList* L,TList* Transfered,FILE* csvfile){	//Eisagi  ta proionta sto csv file
   TList* N;
+	TList* C;
+	CList* T;
   char* current;
-  while(L->Diffrend->Next!=NULL){
-    L=L->Next;
-    N=L->Diffrend;
-    current=malloc(sizeof(char)*(strlen(L->name)+1));//apothikefsi tou trexon komvou
-    strcpy(current,L->name);
-    while(N->Next!=NULL){	//Eisagogi tou trexon komvou mazi me ton kathe ena ap tous epomenous
-      N=N->Next;
-      printf("%s, %s\n",current,N->node->name);
+	int i=0;
+	if(L->Diffrend!=NULL){//Ean yparxoun klikes pou diaferoun me thn L
+			C=L->Diffrend;	//Krataw thn TList me oles tis klikes pou diaferoun me thn L
+			while(L->Next!=NULL){ //Gia kathe proion ths L
+				L=L->Next;
+				current=malloc(sizeof(char)*(strlen(L->name)+1));//apothikefsi tou trexon komvou
+		    strcpy(current,L->name);
+				N=C;
+				while(N->Next!=NULL){ //Gia kathe lista pou diaferei
+					N=N->Next;
+					T=N->node;
 
-    }
-    free(current);
-  }
+					if(FindTList(Transfered,T)){ //Ean den exw elegksei thn T pio prin
+						while(T->Next!=NULL){ //Gia kathe proion ths T klikas
+							T=T->Next;
+							fprintf(csvfile,"%s, %s\n",current,T->name);
+							i++;
+						}
+					}
+
+				}
+				free(current);
+			}
+	}
 }
 
 void Diff(CList* F,CList* S){
@@ -83,16 +97,22 @@ CList* AppendCList(CList* L ,CList* N){
 	CList* Head;
 	Head=N; //To head einai h kefali ths listas N
 	N=N->Next; //O diktis N pleon dixnei ston porto komvo me dedomena ths listas N kai oxi stin kefali ths
-	if(Head->Diffrend!=NULL){
+
+	if(Head->Diffrend!=NULL){ //	Oles oi klikes pou htan diaforetikes ap to head twra tha einai diaforetikes me thn L
 		TList* Temp=Head->Diffrend;
-		while(Temp->Next!=NULL){
+		while(Temp->Next!=NULL){	//Gia kathe klika diaforetikh ths Head
 			Temp=Temp->Next;
-			if(L->Diffrend==NULL) L->Diffrend=CreateTList();
-			InsertTList(L->Diffrend,Temp->node);
-			ReplaceTList(Temp->node->Diffrend,Head,L);
+			if(L->Diffrend==NULL) L->Diffrend=CreateTList();	//Ean h L den exei Diffrend List dimiourgei
+			if(FindTList(L->Diffrend,Temp->node)){	//Ean h paron CList pou einai diaforetikh me thn Head den einai diaforetikh ths L
+				InsertTList(L->Diffrend,Temp->node);	//Vale thn stis diaforetikes ths L
+				ReplaceTList(Temp->node->Diffrend,Head,L);	//Sthn Diffrend list ths parousas CList antikatestise thn Head me thn L
+			}else{	//Ean h paron CList pou einai diaforetikh me thn Head einai diaforetikh ths L diegrapse apo thn Diffrend ths thn  Head
+				RemoveTList(Temp->node->Diffrend,Head);
+			}
 		}
 		FreeTList(Head->Diffrend);
 	}
+
 	Head->Next=NULL;
 	free(Head);	//Apodesmevo thn kefali ths listas N
 	while(L->Next!=NULL){//Pigene ston telefteo komvo ths listas L
@@ -144,12 +164,34 @@ int FindTList(TList* L,CList* node){//Epistrefei 0 an iparxi to node sthn lista 
 }
 
 void InsertTList(TList* L,CList* node){
-
 		TList* N;
 		N=(TList*)malloc(sizeof(TList));
 		N->node=node;
 	  N->Next=L->Next;
 	  L->Next=N;
+}
+
+void RemoveTList(TList* L,CList* C){
+	TList* T;
+	while(L->Next!=NULL){
+		if(L->Next->node==C){
+			T=L->Next;
+			L->Next=T->Next;
+			T->node=NULL;
+			free(T);
+			break;
+		}
+		L=L->Next;
+	}
+}
+
+int CountTList(TList* T){
+	int i=0;
+	while(T->Next!=NULL){
+		T=T->Next;
+		i++;
+	}
+	return i;
 }
 
 void FreeTList(TList* L){//Apodesmevi thn CList
@@ -250,20 +292,21 @@ void TransferNList(NList* L,TList* Transfered,FILE* csvfile){	//Metaferi ta dedo
 				if(FindTList(Transfered,L->clique)){//Ean h klika pou dixnei o komvos L den exei metaferthi
 						TransferCList(L->clique,csvfile);
 						InsertTList(Transfered,L->clique);//Vale thn klika pou dixnei o komvos L se aftes pou exoun metaferthei
-					}
+				}
   		}
 		}
 }
 
-void DiffNList(NList* L,TList* Transfered){	//Metaferi ta dedomena  ths NList
+void DiffNList(NList* L,TList* Transfered,FILE* csvfile){	//Metaferi ta dedomena  ths NList
   while(L->Next!=NULL){
     L=L->Next;
 		if(L->clique!=NULL){
 				if(FindTList(Transfered,L->clique)){//Ean h klika pou dixnei o komvos L den exei metaferthi
-						DiffCList(L->clique);
+						DiffCList(L->clique,Transfered,csvfile);
 						InsertTList(Transfered,L->clique);//Vale thn klika pou dixnei o komvos L se aftes pou exoun metaferthei
-					}
+				}
   		}
+
 		}
 }
 
