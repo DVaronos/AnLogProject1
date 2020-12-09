@@ -19,7 +19,7 @@ int main( int argc, char *argv[] ){
    char* dd;
    char* token=NULL;
    char line[300];
-   int charcount=0,wordcount=0,inputexist=0,dexist=0,files=0;
+   int inputexist=0,dexist=0,files=0;
    char c;
 
 
@@ -64,7 +64,37 @@ int main( int argc, char *argv[] ){
    char* newfile;
    char* newdir;
    char* newid;
+   char word[15];
    Hash* H=HashCreate(1000);
+// DTS /LHash* LEK=LHashCreate(1000); //dimiourgo ena neo Leksilogio(LHash) 1000 theseon
+   LHash* Common=LHashCreate(200);
+   char* temp=strdup("start");
+   int charcount=0;
+   FILE *com;
+
+   if( (com=fopen("common.txt","r"))==NULL){
+     perror("Fopen");
+     return 0;
+   }
+
+   while((c = fgetc(com))!= EOF){ //Apothikevo sto Common tis leksis tou common.txt
+ 		if(c ==',' || c== '\n'){
+
+       word[charcount]='\0';
+
+       free(temp);
+       temp=malloc(sizeof(char)*(strlen(word)+1));
+       strcpy(temp,word);
+       Common=LHashInsert(Common,temp);
+
+ 			charcount=0;
+     }else{
+ 			word[charcount]=c;
+       charcount++;
+ 		}
+ 	}
+
+  fclose(com);
 
    while( new_directory=readdir(directory) ){ //Diavazw to periexomeno tou fakelou pou dothike(diladi tous ipofakelous)
 
@@ -99,7 +129,7 @@ int main( int argc, char *argv[] ){
                       Camera *camera = Camera_Init(newid); //Dimiourgo mia kamera me id newid
                       Read_from_JSON_file(newfile, camera); //Eisagw sthn kamera ta stixeia tou json arxeiou
                       H=HashInsert(H,camera); //Eisagw thn kamera sthn domh mou
-
+  //DEN TREXEI SOST// LEK=Camera_to_string(camera,LEK); //pernaw oles tis leksis ths cameras sto LHash
                       free(newfile);
                       free(newid);
 
@@ -114,6 +144,7 @@ int main( int argc, char *argv[] ){
    char* first;
    char* second;
    int match=0,tcount,z=0,a=0;
+
 
 	 while (fgets(line,sizeof(line),dataw)){//Diavazei to csv file grami grami
      token=strtok(line,",");
@@ -149,14 +180,22 @@ int main( int argc, char *argv[] ){
 
   HashTransfer(H,scsv); //Pernaw ta teriasmata sto csv arxio
   HashDiff(H,dcsv);
+
+//DTS  LHashTF(LEK);
+//DTS  LEK=NMostLHash(LEK,100);
+//DTS  LHashPrint(LEK);
   //Apodesmevi twn domwn
 
   FreeHash(H);
+  FreeLHash(Common);
+//DTS  FreeLHash(LEK);
+  free(temp);
   free(wfile);
   free(dd);
   fclose(dataw);
   fclose(scsv);
   fclose(dcsv);
   closedir(directory);
+
 
 }

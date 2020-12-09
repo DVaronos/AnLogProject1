@@ -1,5 +1,5 @@
 sigmod : main.o list.o hash.o cameras.o json_read.o
-	gcc -o sigmod main.o list.o hash.o cameras.o json_read.o
+	gcc -o sigmod main.o list.o hash.o cameras.o json_read.o -lm
 
 main.o : main.c hash.h
 	gcc -c main.c

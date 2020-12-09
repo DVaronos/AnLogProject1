@@ -61,3 +61,24 @@ void InsertNList(NList* ,Camera* );
 void PrintNList(NList* );
 void FreeNList(NList* ,TList* );
 void DiffNList(NList* ,TList * ,FILE* );
+
+//--------------------Domh LList-----------------------------\\
+
+typedef struct llist{
+  float value;
+  char* camera;
+  struct llist* Next;
+  struct llist* Last;
+}LList;
+
+LList* CreateLList();
+
+float ReturnLValue(LList* ,int );
+float CountLList(LList* );
+
+void InsertLList(LList* ,int );
+void FreeLList(LList* );
+void IncreaseLastValue(LList* );
+void PrintLValue(LList* ,int );
+void PrintLList(LList* );
+void ReplaceLValue(LList* ,int ,float );

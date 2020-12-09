@@ -325,3 +325,101 @@ void FreeNList(NList* L,TList* Deleted){//Apodesmevi thn NList
   }
   free(L);
 }
+
+//--------------------Sinartiseis gia thn domh LList-----------------------------\\
+
+
+LList* CreateLList(){ //Dimiourgia mias neas LList
+	LList *L;
+	L=(LList *)malloc(sizeof(LList));
+	L->Next=NULL;
+	L->Last=NULL;
+  L->camera=NULL;
+	return L;
+
+}
+
+void InsertLList(LList* L,int value){	//Eisagei ena neo value stho telos ths LList
+	LList *N;
+  N=(LList*)malloc(sizeof(LList));
+	N->value=value;
+	N->Next=NULL;
+	if(L==NULL) printf("oxx\n");
+	if(L->Last==NULL){
+		L->Next=N;
+		L->Last=N;
+	}else{
+		L->Last->Next=N;
+		L->Last=N;
+
+	}
+}
+
+void FreeLList(LList* L){ //apodesmefsh ths listas
+	LList* T;
+	while(L->Next!=NULL){
+		T=L->Next;
+		L->Next=T->Next;
+		free(T);
+	}
+	free(L);
+}
+
+void IncreaseLastValue(LList* L){ //Afkasmh thn timh tou telefteou komvou ths listas Kata ena
+  L->Last->value++;
+}
+
+void PrintLValue(LList* L,int h){
+  int i=0;
+  while(L->Next!=NULL){
+    L=L->Next;
+    i++;
+    if(i==h){
+      printf(" %f ",L->value);
+      break;
+    }
+  }
+}
+
+float ReturnLValue(LList* L,int h){	//Epistefh thn timh ths listas gia ipsos h
+  int i=0;
+  while(L->Next!=NULL){
+    L=L->Next;
+    i++;
+    if(i==h){
+      return L->value;
+    }
+  }
+}
+
+void ReplaceLValue(LList* L,int h,float value){ //Antikathista thn timh ths listas sto h ipsos me value
+  int i=0;
+  while(L->Next!=NULL){
+    L=L->Next;
+    i++;
+    if(i==h){
+      L->value=value;
+			break;
+    }
+  }
+}
+
+float CountLList(LList* L){		//Episteh to athrisma twn timwn ths listas
+  float sum=0;
+  while(L->Next!=NULL){
+    L=L->Next;
+    if(L->value){
+      sum++;
+    }
+  }
+	return sum;
+}
+
+void PrintLList(LList* L){
+	printf("[");
+  while(L->Next!=NULL){
+    L=L->Next;
+    printf(" %f ",L->value);
+  }
+	printf("]\n");
+}
