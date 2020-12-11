@@ -518,3 +518,54 @@ void FreeLHash(LHash* H){   //apodesmefsth tou Hash
   }
   free(H);
 }
+
+//==============================================================\\
+
+CList* FindClique(Camera* camera, Hash* H)
+{
+  if(camera == NULL)
+    return NULL;
+  NList* spec_ptr;
+  NList *nl = H->Head;
+  int i = 0, j = 0, in;
+  char name[20];
+    H->count++;
+  while(camera->id[i]!='/') //Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
+      i++;
+    i+=2;//pigeno to i sthn thesh pou arxizei o arithmos tou proiontos
+  while(i<strlen(camera->id))
+  {
+    name[j]=camera->id[i];
+    j++;
+    i++;
+  }
+  name[j]='\0';
+  in=atoi(name);//apothievo ton arithmo tou proiontos ston int in
+  int index=hash(in,H->size);
+  nl = H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
+  spec_ptr = nl->Next;  //spec_ptr deixnei sthn prwth camera ths listas nl
+  while(spec_ptr->camera != camera) //anazhthsh mexri na ve8eoun to c1 sto collision list
+  {
+    spec_ptr = spec_ptr->Next;
+    if(spec_ptr == NULL)  //h c1 den uparxei sth lista (oute sto hash)
+      return NULL;
+  }
+  return spec_ptr->clique;
+}
+
+int IsAMatch(Camera* c1, Camera* c2, Hash* H)
+{
+  if((c1 == NULL) || (c2 == NULL))
+    return -1;
+
+  Camera* c1_ptr, c2_ptr;
+  CList* clique1, *clique2;
+
+  clique1 = FindClique(c1, H);
+  clique2 = FindClique(c2, H);
+
+  if(clique1 == clique2)
+    return 1;
+  else
+    return 0;
+}

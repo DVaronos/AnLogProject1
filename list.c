@@ -3,6 +3,13 @@
 #include <stdlib.h>
 #include "list.h"
 
+#define TRAIN_PERC 60
+// #define TRAIN_PERC 67
+// #define TRAIN_PERC 50
+#define TEST_PERC 20
+// #define TEST_PERC 20
+// #define TEST_PERC 25
+
 //--------------------Sinartiseis gia thn domh CList-----------------------------\\
 
 
@@ -10,8 +17,11 @@ CList* CreateCList(){ //Dimiourgei mia nea CList
 	CList *L;
 	L=(CList *)malloc(sizeof(CList));
 	L->Next=NULL;
-  L->name=NULL;
+  	L->name=NULL;
 	L->Diffrend=NULL;
+	//--------------------------------------------------
+	L->camera_count = 0;
+	//--------------------------------------------------
 	return L;
 }
 
@@ -24,6 +34,9 @@ void InsertCList(CList* L,char* product,NList* Head){//Eisagei ena neo product s
 	N->Head=Head;
   N->Next=L->Next;
   L->Next=N;
+  //--------------------------------------------------
+  L->camera_count++;
+  //--------------------------------------------------
 }
 
 
@@ -96,6 +109,8 @@ CList* AppendCList(CList* L ,CList* N){
 	CList* T=L;
 	CList* Head;
 	Head=N; //To head einai h kefali ths listas N
+	int ncount = N->camera_count;
+	L->camera_count += ncount; 	//enhmerwnoume to count
 	N=N->Next; //O diktis N pleon dixnei ston porto komvo me dedomena ths listas N kai oxi stin kefali ths
 
 	if(Head->Diffrend!=NULL){ //	Oles oi klikes pou htan diaforetikes ap to head twra tha einai diaforetikes me thn L
@@ -204,6 +219,22 @@ void FreeTList(TList* L){//Apodesmevi thn CList
   }
   free(L);
 }
+
+// ===============================================================================
+void Print_Camera_Count_TList(TList* T)
+{
+	int i = 1;
+	TList* tptr = T->Next;
+	while(tptr != NULL)
+	{
+		printf("list %d has %d cameras\n", i, tptr->node->camera_count);
+		tptr = tptr->Next;
+		i++;
+	}
+}
+// ===============================================================================
+
+
 
 void FreeeTList(TList* L){  //Apodesmevi thn TList kai tis CList pou exei os dedomena
 	TList* T;
@@ -423,3 +454,350 @@ void PrintLList(LList* L){
   }
 	printf("]\n");
 }
+
+//--------------------Sinartiseis gia thn domh TrainSetList-----------------------------\\
+
+TrainSetList* InitializeTrainSetList()
+{
+	TrainSetList* tsl;
+	tsl = malloc(sizeof(TrainSetList));
+	tsl->camera_count = 0;
+	tsl->first = NULL;
+	tsl->last = NULL;
+	return tsl;
+}
+
+TrainSetList* InsertCameraToTrainSetList(TrainSetList* tsl, Camera* camera)
+{
+	TrainSetNode* tsn = InitializeTrainSetNode(camera);
+	if(tsl->first == NULL)
+		tsl->first = tsn;
+	if(tsl->last != NULL)
+		tsl->last->next = tsn;
+	tsl->last = tsn;
+	tsl->camera_count++;
+	return tsl;
+}
+
+void PrintTrainSetList(TrainSetList* tsl)
+{
+	TrainSetNode* tsn = tsl->first;
+	printf("---------------Training Set--------------- \n");
+	if(tsl != NULL)
+		while(tsn != NULL)
+		{
+			PrintTrainSetNode(tsn);
+			tsn = tsn->next;
+		}
+	else
+		printf("Empty Train Set List\n");
+}
+
+
+void PrintTrainSetCameraCount(TrainSetList* tsl)
+{
+	printf("Train Set contains %d cameras\n", tsl->camera_count);
+}
+
+int FreeTrainSetList(TrainSetList* tsl)
+{
+	if(tsl == NULL)
+	{
+		printf("Empty Train Set List\n");
+		return 0;
+	}
+	TrainSetNode* tsn = tsl->first;
+	TrainSetNode* tsn2;
+	while(tsn != NULL)
+	{
+		tsn2 = tsn->next;
+		FreeTrainSetNode(tsn);
+		tsn = tsn2;
+	}
+	free(tsl);
+	return 1;
+}
+
+//--------------------Sinartiseis gia thn domh TrainSetNode-----------------------------\\
+
+TrainSetNode* InitializeTrainSetNode(Camera* camera)
+{
+	TrainSetNode* tsn;
+	tsn = malloc(sizeof(TrainSetNode));
+	tsn->camera = camera;
+	tsn->next = NULL;
+	return tsn;
+}
+
+void PrintTrainSetNode(TrainSetNode* tsn)
+{
+	if(tsn != NULL)
+		printf("camera's id %s\n", tsn->camera->id);
+	else
+		printf("Train Set node is NULL\n");
+}
+
+int FreeTrainSetNode(TrainSetNode* tsn)
+{
+	if(tsn == NULL)
+	{
+		// empty node
+		return 0;
+	}
+	free(tsn);
+	return 1;
+}
+
+//--------------------Sinartiseis gia thn domh TestSetList-----------------------------\\
+
+TestSetList* InitializeTestSetList()
+{
+	TestSetList* tsl;
+	tsl = malloc(sizeof(TestSetList));
+	tsl->camera_count = 0;
+	tsl->first = NULL;
+	tsl->last = NULL;
+	return tsl;
+}
+
+TestSetList* InsertCameraToTestSetList(TestSetList* tsl, Camera* camera)
+{
+	TestSetNode* tsn = InitializeTestSetNode(camera);
+	if(tsl->first == NULL)
+		tsl->first = tsn;
+	if(tsl->last != NULL)
+		tsl->last->next = tsn;
+	tsl->last = tsn;
+	tsl->camera_count++;
+	return tsl;
+}
+
+void PrintTestSetList(TestSetList* tsl)
+{
+	TestSetNode* tsn = tsl->first;
+	printf("---------------Training Set--------------- \n");
+
+	if(tsl != NULL)
+		while(tsn != NULL)
+		{
+			PrintTestSetNode(tsn);
+			tsn = tsn->next;
+		}
+	else
+		printf("Empty Test Set List\n");
+}
+
+void PrintTestSetCameraCount(TestSetList* tsl)
+{
+	printf("Test Set contains %d cameras\n", tsl->camera_count);
+}
+
+int FreeTestSetList(TestSetList* tsl)
+{
+	if(tsl == NULL)
+	{
+		printf("Empty Test Set List\n");
+		return 0;
+	}
+	TestSetNode* tsn = tsl->first;
+	TestSetNode* tsn2;
+	while(tsn != NULL)
+	{
+		tsn2 = tsn->next;
+		FreeTestSetNode(tsn);
+		tsn = tsn2;
+	}
+	free(tsl);
+	return 1;
+}
+
+
+//--------------------Sinartiseis gia thn domh TestSetNode-----------------------------\\
+
+TestSetNode* InitializeTestSetNode(Camera* camera)
+{
+	TestSetNode* tsn;
+	tsn = malloc(sizeof(TestSetNode));
+	tsn->camera = camera;
+	tsn->next = NULL;
+	return tsn;
+}
+
+void PrintTestSetNode(TestSetNode* tsn)
+{
+	if(tsn != NULL)
+		printf("camera's id %s\n", tsn->camera->id);
+	else
+		printf("Test Set node is NULL\n");
+}
+
+int FreeTestSetNode(TestSetNode* tsn)
+{
+	if(tsn == NULL)
+	{
+		// empty node
+		return 0;
+	}
+	free(tsn);
+	return 1;
+}
+
+// --------------------------------------------------------------------------------------\\
+
+void Percentage_Calculation(int camera_count, int* train_perc, int* test_perc)
+{
+	*train_perc = (camera_count * TRAIN_PERC) / 100;
+	*test_perc = (camera_count * TEST_PERC) / 100;
+}
+
+// --------------------------------------------------------------------------------------\\
+
+
+void SplitToTrainTestValidationSet(TrainSetList** trainsl, TestSetList** testsl, ValidationSetList** validationsl,  TList* tl)
+{
+	int set_count, i, train_perc, test_perc;	//i-> poses cameres exoume diavasei (kai valei sto set train) apo thn ka8e klika
+	TList* tlptr = tl->Next; 	//Tlist node ptr (twra deixnei sto prwto node me dedomena (epomeno apo thn kefalida))
+	// CList* cnptr = tl->node;	//clist node ptr (twra deixnei sthn clist gia thn prwth klika?)
+	CList* cnptr;
+
+	*trainsl = InitializeTrainSetList();
+	*testsl = InitializeTestSetList();
+	*validationsl = InitializeValidationSetList();
+
+	while(tlptr != NULL)
+	{
+		cnptr = tlptr->node;
+		Percentage_Calculation(cnptr->camera_count, &train_perc, &test_perc);
+		i = 0;
+		cnptr = cnptr->Next;
+		while(cnptr != NULL)
+		{
+			if(i < train_perc)
+				*trainsl = InsertCameraToTrainSetList(*trainsl, cnptr->Head->camera);	//apo thn klika pisw sto ->  antistoixo node tou hash -> camera
+			else if ( i <= train_perc + test_perc)
+				*testsl = InsertCameraToTestSetList(*testsl, cnptr->Head->camera);
+			else
+				*validationsl = InsertCameraToValidationSetList(*validationsl, cnptr->Head->camera);
+			i++;
+			cnptr = cnptr->Next;
+		}
+
+		tlptr = tlptr->Next;
+	}
+}
+
+//--------------------Sinartiseis gia thn domh ValidationSetList-----------------------------\\
+
+ValidationSetList* InitializeValidationSetList()
+{
+	ValidationSetList* vsl;
+	vsl = malloc(sizeof(ValidationSetList));
+	vsl->camera_count = 0;
+	vsl->first = NULL;
+	vsl->last = NULL;
+	return vsl;
+}
+
+ValidationSetList* InsertCameraToValidationSetList(ValidationSetList* vsl, Camera* camera)
+{
+	ValidationSetNode* vsn = InitializeValidationSetNode(camera);
+	if(vsl->first == NULL)
+		vsl->first = vsn;
+	if(vsl->last != NULL)
+		vsl->last->next = vsn;
+	vsl->last = vsn;
+	vsl->camera_count++;
+	return vsl;
+}
+
+void PrintValidationSetList(ValidationSetList* vsl)
+{
+	ValidationSetNode* vsn = vsl->first;
+	printf("---------------Training Set--------------- \n");
+
+	if(vsl != NULL)
+		while(vsn != NULL)
+		{
+			PrintValidationSetNode(vsn);
+			vsn = vsn->next;
+		}
+	else
+		printf("Empty Validation Set List\n");
+}
+
+void PrintValidationSetCameraCount(ValidationSetList* vsl)
+{
+	printf("Validation Set contains %d cameras\n", vsl->camera_count);
+}
+
+int FreeValidationSetList(ValidationSetList* vsl)
+{
+	if(vsl == NULL)
+	{
+		printf("Empty Test Set List\n");
+		return 0;
+	}
+	ValidationSetNode* vsn = vsl->first;
+	ValidationSetNode* vsn2;
+	while(vsn != NULL)
+	{
+		vsn2 = vsn->next;
+		FreeValidationSetNode(vsn);
+		vsn = vsn2;
+	}
+	free(vsl);
+	return 1;
+}
+
+//--------------------Sinartiseis gia thn domh ValidationSetNode-----------------------------\\
+
+ValidationSetNode* InitializeValidationSetNode(Camera* camera)
+{
+	ValidationSetNode* vsn;
+	vsn = malloc(sizeof(ValidationSetNode));
+	vsn->camera = camera;
+	vsn->next = NULL;
+	return vsn;
+}
+
+void PrintValidationSetNode(ValidationSetNode* vsn)
+{
+	if(vsn != NULL)
+		printf("camera's id %s\n", vsn->camera->id);
+	else
+		printf("Validation Set node is NULL\n");
+}
+
+int FreeValidationSetNode(ValidationSetNode* vsn)
+{
+	if(vsn == NULL)
+	{
+		// empty node
+		return 0;
+	}
+	free(vsn);
+	return 1;
+}
+
+//-------------------------------------------------------------------------------------------\\
+
+void PrintAllPairsTrainSet(TrainSetList* tsl)
+{
+	TrainSetNode* tsn1_ptr, *tsn2_ptr;
+	tsn1_ptr = tsl->first;
+	while(tsn1_ptr != NULL)
+	{
+		tsn2_ptr = tsn1_ptr->next;
+		while(tsn2_ptr != NULL)
+		{
+			printf("\n");
+			PrintTrainSetNode(tsn1_ptr);
+			PrintTrainSetNode(tsn2_ptr);
+			printf("==============================\n");
+			tsn2_ptr = tsn2_ptr->next;
+		}
+		tsn1_ptr = tsn1_ptr->next;
+	}
+
+}
+

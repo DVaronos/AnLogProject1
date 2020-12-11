@@ -49,3 +49,8 @@ LHash* LHashSort(LHash* ,int ,int );
 LHash* LHashSwap(LHash* ,int ,int );
 LHash* NMostLHash(LHash* ,int);
 LHash* Camera_to_string(Camera* ,LHash* );
+
+// =================================================\\
+
+CList* FindClique(Camera* camera, Hash* H);
+int IsAMatch(Camera* c1, Camera* c2, Hash* H);

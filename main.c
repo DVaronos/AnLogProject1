@@ -181,6 +181,59 @@ int main( int argc, char *argv[] ){
   HashTransfer(H,scsv); //Pernaw ta teriasmata sto csv arxio
   HashDiff(H,dcsv);
 
+    Print_Camera_Count_TList(qlique_list);
+
+
+  TrainSetList* train_sl;
+  TestSetList* test_sl;
+  ValidationSetList* validation_sl;
+
+
+  SplitToTrainTestValidationSet(&train_sl, &test_sl, &validation_sl, qlique_list);
+
+  PrintTrainSetCameraCount(train_sl);
+  PrintTestSetCameraCount(test_sl);
+  PrintValidationSetCameraCount(validation_sl);
+
+  // PrintAllPairsTrainSet(train_sl);
+
+  // int match_count= 0, not_match_count = 0,match__;
+  //   TrainSetNode* tsn1_ptr, *tsn2_ptr;
+  //   tsn1_ptr = train_sl->first;
+  //   while(tsn1_ptr != NULL)
+  //   {
+  //     tsn2_ptr = tsn1_ptr->next;
+  //     while(tsn2_ptr != NULL)
+  //     {
+  //       printf("\n");
+  //       // PrintTrainSetNode(tsn1_ptr);
+  //       // PrintTrainSetNode(tsn2_ptr);
+  //       match__ = IsAMatch(tsn1_ptr->camera, tsn2_ptr->camera, H);
+  //       if(match__)
+  //       {
+  //         printf("%s and %s : its a match\n", tsn1_ptr->camera->id, tsn2_ptr->camera->id);
+  //         match_count++;
+  //       }
+  //       else
+  //       {
+  //         printf("%s and %s : is not a match\n", tsn1_ptr->camera->id, tsn2_ptr->camera->id);
+  //         not_match_count++;
+  //       }
+  //       printf("==============================\n");
+  //       tsn2_ptr = tsn2_ptr->next;
+  //     }
+  //     tsn1_ptr = tsn1_ptr->next;
+  //   }
+  // printf("matches: %d\n not matched: %d", match_count, not_match_count);
+
+  // =====================
+
+  FreeTrainSetList(train_sl);
+  FreeTestSetList(test_sl);
+  FreeValidationSetList(validation_sl);
+
+  FreeTList(qlique_list);
+
 //DTS  LHashTF(LEK);
 //DTS  LEK=NMostLHash(LEK,100);
 //DTS  LHashPrint(LEK);
