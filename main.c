@@ -4,9 +4,16 @@
 #include <unistd.h>
 #include <sys/times.h>
 #include <dirent.h>
+#include <sys/times.h>
 #include "hash.h"
 
 int main( int argc, char *argv[] ){
+
+    double t1, t2,time,ticspersec;
+    struct tms tb1, tb2;
+
+    ticspersec = (double) sysconf(_SC_CLK_TCK);
+    t1 = (double) times(&tb1);
 
    DIR* directory;
    DIR* indirectory;
@@ -19,9 +26,8 @@ int main( int argc, char *argv[] ){
    char* dd;
    char* token=NULL;
    char line[300];
-   int inputexist=0,dexist=0,files=0;
+   int inputexist=0,dexist=0,files=0,jcount=0;
    char c;
-
 
    for(int i=1 ; i<argc ; i++){//Elegxos gia to an iparxei arxio eisodou
      if(strcmp(argv[i],"-w")==0){//Efoson iparxi inputfile apothikefsi tou onomatos tou
@@ -66,18 +72,19 @@ int main( int argc, char *argv[] ){
    char* newid;
    char word[15];
    Hash* H=HashCreate(1000);
-// DTS /LHash* LEK=LHashCreate(1000); //dimiourgo ena neo Leksilogio(LHash) 1000 theseon
+   LHash* LEK=LHashCreate(1000);
    LHash* Common=LHashCreate(200);
    char* temp=strdup("start");
    int charcount=0;
    FILE *com;
+   WHash* S;
 
    if( (com=fopen("common.txt","r"))==NULL){
      perror("Fopen");
      return 0;
    }
 
-   while((c = fgetc(com))!= EOF){ //Apothikevo sto Common tis leksis tou common.txt
+   while((c = fgetc(com))!= EOF){//Apothikevo tis common leksis se ena hash
  		if(c ==',' || c== '\n'){
 
        word[charcount]='\0';
@@ -85,7 +92,7 @@ int main( int argc, char *argv[] ){
        free(temp);
        temp=malloc(sizeof(char)*(strlen(word)+1));
        strcpy(temp,word);
-       Common=LHashInsert(Common,temp);
+       Common=LHashInsert(Common,temp,0);
 
  			charcount=0;
      }else{
@@ -95,6 +102,7 @@ int main( int argc, char *argv[] ){
  	}
 
   fclose(com);
+  printf("OLA KALA ME TO KOMON\n");
 
    while( new_directory=readdir(directory) ){ //Diavazw to periexomeno tou fakelou pou dothike(diladi tous ipofakelous)
 
@@ -126,10 +134,10 @@ int main( int argc, char *argv[] ){
                       strcat(newfile,"/");
                       strcat(newfile,curfile->d_name);
 
-                      Camera *camera = Camera_Init(newid); //Dimiourgo mia kamera me id newid
-                      Read_from_JSON_file(newfile, camera); //Eisagw sthn kamera ta stixeia tou json arxeiou
-                      H=HashInsert(H,camera); //Eisagw thn kamera sthn domh mou
-  //DEN TREXEI SOST// LEK=Camera_to_string(camera,LEK); //pernaw oles tis leksis ths cameras sto LHash
+                      H=HashInsert(H,newid); //Apothikevo to id ths cameras sthn domh
+                      LEK=Readjson(newfile,LEK,Common,&S); //Diavazo to json file kai apothikevo ta dedomena sto leksilogio kai se ena WHash
+                      jcount++;
+                      H=HashReplaceSpear(H,newid,S);  //Eisago to whash sthn atnisthxh thesh sthn domh
                       free(newfile);
                       free(newid);
 
@@ -140,12 +148,31 @@ int main( int argc, char *argv[] ){
             free(newdir);
         }
     }
-
+   printf("OLA KALA ME TO DIAVASMA TWN JSON\n");
    char* first;
    char* second;
    int match=0,tcount,z=0,a=0;
 
+   LHashIDF(LEK,jcount); //Ipologizo to IDF twn leksewn tou leksilogiou
+   LEK=NMostLHash(LEK,1000);  //Pairnw tis 1000 pio simantikes leksis
+   printf("OLA TO LEK\n");
+   H=HashVectorts(H,LEK); //Dimiourgw gia kathe kamera ena vector simfona me to leksilogio
 
+   FreeLHash(Common); //Apodesmevw to leksilogio kai to Common hash giati pleon den ta xriazome
+   FreeLHash(LEK);
+   int tc=0,sh,ap=0;
+   while (fgets(line,sizeof(line),dataw)){//Diavazei to csv file grami grami
+     tc++;
+	 }
+   fclose(dataw);
+
+   tc-=1;
+   sh=tc*0.6; //Ipologizw to 60% twn gramwn tou csv
+   if((dataw=fopen(wfile,"r"))==NULL){//ean den iparxei to arxeio pou dothike san input file vgenei error kai termatizei h efarmogh
+     printf("ERROR:There no such wfile\n");
+     free(dataw);
+     return 0;
+   }
 	 while (fgets(line,sizeof(line),dataw)){//Diavazei to csv file grami grami
      token=strtok(line,",");
      if(!strcmp(token,"left_spec_id"))  continue;
@@ -170,7 +197,13 @@ int main( int argc, char *argv[] ){
     HashConect(H,first,second,match);
     free(first);
     free(second);
+    ap++;
+    if(ap==sh) break;
 	}
+  fclose(dataw);
+
+  printf("OLA KALA ME TIS KLIKES TON JSON\n");
+
 
   scsv=fopen("Same.csv","w+"); //Dimiourgw ena neo csv arxio
   fprintf(scsv,"left_spec_id, right_spec_id\n");
@@ -181,74 +214,19 @@ int main( int argc, char *argv[] ){
   HashTransfer(H,scsv); //Pernaw ta teriasmata sto csv arxio
   HashDiff(H,dcsv);
 
-    Print_Camera_Count_TList(qlique_list);
-
-
-  TrainSetList* train_sl;
-  TestSetList* test_sl;
-  ValidationSetList* validation_sl;
-
-
-  SplitToTrainTestValidationSet(&train_sl, &test_sl, &validation_sl, qlique_list);
-
-  PrintTrainSetCameraCount(train_sl);
-  PrintTestSetCameraCount(test_sl);
-  PrintValidationSetCameraCount(validation_sl);
-
-  // PrintAllPairsTrainSet(train_sl);
-
-  // int match_count= 0, not_match_count = 0,match__;
-  //   TrainSetNode* tsn1_ptr, *tsn2_ptr;
-  //   tsn1_ptr = train_sl->first;
-  //   while(tsn1_ptr != NULL)
-  //   {
-  //     tsn2_ptr = tsn1_ptr->next;
-  //     while(tsn2_ptr != NULL)
-  //     {
-  //       printf("\n");
-  //       // PrintTrainSetNode(tsn1_ptr);
-  //       // PrintTrainSetNode(tsn2_ptr);
-  //       match__ = IsAMatch(tsn1_ptr->camera, tsn2_ptr->camera, H);
-  //       if(match__)
-  //       {
-  //         printf("%s and %s : its a match\n", tsn1_ptr->camera->id, tsn2_ptr->camera->id);
-  //         match_count++;
-  //       }
-  //       else
-  //       {
-  //         printf("%s and %s : is not a match\n", tsn1_ptr->camera->id, tsn2_ptr->camera->id);
-  //         not_match_count++;
-  //       }
-  //       printf("==============================\n");
-  //       tsn2_ptr = tsn2_ptr->next;
-  //     }
-  //     tsn1_ptr = tsn1_ptr->next;
-  //   }
-  // printf("matches: %d\n not matched: %d", match_count, not_match_count);
-
-  // =====================
-
-  FreeTrainSetList(train_sl);
-  FreeTestSetList(test_sl);
-  FreeValidationSetList(validation_sl);
-
-  FreeTList(qlique_list);
-
-//DTS  LHashTF(LEK);
-//DTS  LEK=NMostLHash(LEK,100);
-//DTS  LHashPrint(LEK);
-  //Apodesmevi twn domwn
+  printf("OLA KALA ME TA NEA CSV FILES\n");
 
   FreeHash(H);
-  FreeLHash(Common);
-//DTS  FreeLHash(LEK);
   free(temp);
   free(wfile);
   free(dd);
-  fclose(dataw);
   fclose(scsv);
   fclose(dcsv);
   closedir(directory);
+
+  t2 = (double) times(&tb2);
+  time=((t2 - t1) / ticspersec);  //O xrronos pou perase gia na vrethei o arithmos
+  printf("Time was %f secs\n",time);
 
 
 }

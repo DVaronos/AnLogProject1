@@ -14,11 +14,15 @@ void HashPrint(Hash* );
 void FreeHash(Hash* );
 void HashDiff(Hash* ,FILE* );
 
+
 int hash(int ,int );
 
+WHash* HashFind(Hash* ,char* );
+
 Hash* HashCreate(int );
-Hash* HashInsert(Hash* ,Camera*  );
+Hash* HashInsert(Hash* ,char* );
 Hash* rehash(Hash* );
+Hash* HashReplaceSpear(Hash* ,char* ,WHash* );
 
 
 //--------------------Domh LHash--------------------\\
@@ -29,8 +33,8 @@ typedef struct lh{
   float idf;
   int size;
   int count;
-  int height;
-  LList* List;
+  int wordperj;
+  int totalword;
 }LHash;
 
 int hash1(char* ,int);
@@ -39,18 +43,15 @@ int LHashPartition(LHash** ,int ,int );
 
 void FreeLHash(LHash* );
 void LHashIncreaseHeight(LHash* );
-void LHashTF(LHash* );
+void LHashIDF(LHash* ,double );
 
+LHash* Readjson(char* ,LHash* ,LHash* ,WHash** );
 LHash* LHashCreate(int );
-LHash* LHashInsert(LHash* ,char*  );
+LHash* LHashInsert(LHash* ,char*  ,int);
 LHash* LHashPrint(LHash* );
 LHash* Lrehash(LHash* );
 LHash* LHashSort(LHash* ,int ,int );
 LHash* LHashSwap(LHash* ,int ,int );
 LHash* NMostLHash(LHash* ,int);
-LHash* Camera_to_string(Camera* ,LHash* );
 
-// =================================================\\
-
-CList* FindClique(Camera* camera, Hash* H);
-int IsAMatch(Camera* c1, Camera* c2, Hash* H);
+Hash* HashVectorts(Hash* ,LHash* );

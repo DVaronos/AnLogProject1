@@ -7,7 +7,6 @@
 //--------------------Sinartiseis gia thn domh Hash-----------------------------\\
 
 int hash(int id,int size){
-
   id^= (id << 13);
   id^= (id >> 17);
   id^= (id << 5);
@@ -40,17 +39,17 @@ void FreeHash(Hash* H){//Apodesmevi to HashTable
 }
 
 
-Hash* HashInsert(Hash* H,Camera* camera){ /*Eisagei enan neo product sto HashTable*/
+Hash* HashInsert(Hash* H,char* camera){ /*Eisagei enan neo product sto HashTable*/
   NList *L;
 	int i=0,j=0,in;
 	char name[20];
   H->count++;
-	while(camera->id[i]!='/'){//Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
+	while(camera[i]!='/'){//Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
     i++;
   }
 	i+=2;//pigeno to i sthn thesh pou arxizei o arithmos tou proiontos
-	while(i<strlen(camera->id)){
-		name[j]=camera->id[i];
+	while(i<strlen(camera)){
+		name[j]=camera[i];
 		j++;
 		i++;
 	}
@@ -82,10 +81,9 @@ Hash* rehash(Hash *H){
     N=(NList*)H[i].Head;
     while(N->Next!=NULL){
       N=N->Next;
-      Camera* camera;
-      camera=N->camera;
-      N->camera=NULL;
-      HashInsert(Temp,camera);
+      Temp=HashInsert(Temp,N->camera);
+      Temp=HashReplaceSpear(Temp,N->camera,N->Spear);
+      N->Spear=NULL;
     }
   }
 
@@ -152,7 +150,6 @@ void HashTransfer(Hash* H,FILE* csvfile){//Metaferi ta proionta poy teriazoun se
 		L=(NList*)H[i].Head;
 		TransferNList(L,Transfered,csvfile);
 	}
-//  printf("EINAI %d KLIKES\n",CountTList(Transfered));
   FreeTList(Transfered);
 }
 
@@ -164,7 +161,6 @@ void HashDiff(Hash* H,FILE* csvfile){//Metaferi ta dedomena pou den teriazoun se
 		L=(NList*)H[i].Head;
 		DiffNList(L,Transfered,csvfile);
 	}
-  //printf("EINAI %d KLIKES\n",CountTList(Transfered));
   FreeTList(Transfered);
 }
 
@@ -177,8 +173,78 @@ void HashPrint(Hash* H){//Ektiponei to HashTable
 	}
 }
 
+Hash* HashVectorts(Hash* H,LHash* Lek){ //Dimiourgei ena vector gia kathe camera
+	NList *L;
+  double tf;
+	for(int i=0 ; i<H->size ; i++){  //Gia kathe bucket tou Hash
+		L=(NList*)H[i].Head;
+		while(L->Next!=NULL){ //Gia kathe komvo ths NList(ara gia kathe kameras)
+      L=L->Next;
+      L->vector=malloc(sizeof(double )*Lek->size);  //Dimiourgia enos noeu vector Lek->size thesewn
+      for(int j=0 ; j<Lek->size ; j++){ //Gia kathe leksh tou Lek
+        tf=GiveTF(L->Spear,Lek[j].word);  //Pernw to tf ths lekshs an iparxei sthn camera alios to tf ginete 0
+        L->vector[j]=tf*Lek[j].idf; //Ipologizw to tf*idf
+      }
+      FreeWHash(L->Spear);  //Apodemsevw to WHash ths cameras afou pleon den to xriazome
+      L->Spear=NULL;
+    }
 
-//--------------------Sinartiseis gia thn domh Hash-----------------------------\\
+	}
+  return H;
+}
+
+WHash* HashFind(Hash* H,char* word){
+  NList *L;
+	int i=0,j=0,in;
+	char name[20];
+  while(word[i]!='/'){//Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
+    i++;
+  }
+	i+=2;//pigeno to i sthn thesh pou arxizei o arithmos tou proiontos
+	while(i<strlen(word)){
+		name[j]=word[i];
+		j++;
+		i++;
+	}
+	name[j]='\0';
+	in=atoi(name);//apothievo ton arithmo tou proiontos ston int in
+	int index=hash(in,H->size);
+  L=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
+  while(L->Next!=NULL){
+    L=L->Next;
+    if(!strcmp(L->camera,word)) return L->Spear;
+  }
+  return NULL;
+}
+
+Hash* HashReplaceSpear(Hash* H,char* word,WHash* Spear){  //Antikathistw to WHash ths cameras me onoma word
+  NList *L;
+	int i=0,j=0,in;
+	char name[20];
+  while(word[i]!='/'){//Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
+    i++;
+  }
+	i+=2;//pigeno to i sthn thesh pou arxizei o arithmos tou proiontos
+	while(i<strlen(word)){
+		name[j]=word[i];
+		j++;
+		i++;
+	}
+	name[j]='\0';
+	in=atoi(name);//apothievo ton arithmo tou proiontos ston int in
+	int index=hash(in,H->size);
+  L=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
+  while(L->Next!=NULL){ //Antikathistw to WHash ths cameras me onoma word
+    L=L->Next;
+    if(!strcmp(L->camera,word)){
+      if(L->Spear!=NULL) FreeWHash(L->Spear);
+      L->Spear=Spear;
+      return H;
+    }
+  }
+}
+
+//--------------------Sinartiseis gia thn domh LHash-----------------------------\\
 
 
 
@@ -198,30 +264,17 @@ LHash* LHashCreate(int size){ //Dimiourgei ena neo LHashTable megetous size
 	H=(LHash* )malloc(size *  sizeof(LHash) );
 	H->size=size;
   H->count=0;
-  H->height=0;
-  H->idf=0;
   for(i=0 ; i< size ; i++){ //gia kathe bucket tou LHashTable arxikopiei ta dedomena tou
-		H[i].List=CreateLList();
     H[i].word=NULL;
     H[i].idf=0.0;
+    H[i].wordperj=0;
+    H[i].totalword=0;
 	}
 	return H;
 }
 
-void LHashIncreaseHeight(LHash* H){ //Gia kathe bucket tou LHash table afksanei kata ena to megethos ths LList tou,oi neoi komvoi exoun thn timh 0
-  H->height++;
-  int c=0;
-  for(int i=0 ; i<H->size ; i++){
-    if(H[i].word!=NULL){
-      InsertLList(H[i].List,0);
-      c++;
-    }
-    if(c==H->count) break;  //Ean episkeftikes ola ta bucket pou exoun periexomeno vges ap thn for
-  }
-}
 
-LHash* LHashInsert(LHash* H,char* camera){ /*Eisagei enan neo product sto LHashTable*/
-  LList *L;
+LHash* LHashInsert(LHash* H,char* camera,int flag){ /*Eisagei enan neo product sto LHashTable*/
 	int j=0,index,exist=0,r=0;
 
   while(1){ //Evresi tou bucket pou tha paei to neo product
@@ -238,22 +291,18 @@ LHash* LHashInsert(LHash* H,char* camera){ /*Eisagei enan neo product sto LHashT
     }
     j++;
   }
-
-    L=(LList*)H[index].List;//pernw thn lista pou vriskete sto index bucket tou LHashTable
-
-    if(!exist){ //Ean h camera den iparxei idi
-      H->count++;
-      H[index].word=strdup(camera);
-      for(int k=0 ; k<(H->height-1) ; k++){
-        InsertLList(L,0);
-      }
-      InsertLList(L,1);
-    }else{
-      IncreaseLastValue(L);
+  if(!exist){ //Ean h camera den iparxei idi
+    H->count++;
+    H[index].word=strdup(camera);
+    H[index].wordperj=1;
+    H[index].totalword=1;
+    float n=(1.0*H->count)/H->size;
+    if(n>=0.8){ //Ean h plirotita ftasei to 80% kanei rehash
+      H=Lrehash(H);
     }
-  float n=(1.0*H->count)/H->size;
-  if(n>=0.8){ //Ean h plirotita ftasei to 80% kanei rehash
-    H=Lrehash(H);
+  }else{
+    if(flag) H[index].wordperj=H[index].wordperj+1;
+    H[index].totalword=H[index].totalword+1;
   }
   return H;
 }
@@ -264,95 +313,64 @@ LHash* Lrehash(LHash* H){
   Temp=(LHash* )malloc( (H->size*2) *  sizeof(LHash) ); //Dimiourgo ena neo HasTable me thn diplasia xoritikotita
   Temp->size=H->size * 2;
   Temp->count=H->count;
-  Temp->height=H->height;
+  //Temp->height=H->height;
   for(i=0 ; i< Temp->size ; i++){
     Temp[i].word=NULL;
     Temp[i].idf=0.0;
+    Temp[i].wordperj=0;
+    Temp[i].totalword=0;
   }
-
   for(i=0 ; i< H->size ; i++){  //Pernaw ta dedomena tou paliou sto neo HasTable
 
     if(H[i].word!=NULL){  //Ean to arxiko Hash exei dedomena se afthn thn thesh
       j=0;
-      exist=0;
-      while(1){ //Vrisko thn thesh ths lekshs gia to neo Hash
-        if(!j){
+      while(1){ //Evresi tou bucket pou tha paei to neo product
+        if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish hash
           index=hash1(H[i].word,Temp->size);
         }else{
           index=(index+j*j)%(Temp->size);
         }
-        if(Temp[index].word==NULL){
+        if(Temp[index].word==NULL){  //Ean einai adio to bucket tha isagoume se afto thn camera
           break;
         }
         j++;
-      } //Metafero ta dedomena sto kenourio Hash
-      Temp[index].word=H[i].word;
-      Temp[index].idf=H[i].idf;
-      Temp[index].List=H[i].List;
-      H[i].word=NULL;
-      H[i].List=NULL;
+      }
+      Temp[index].word=strdup(H[i].word);
+      Temp[index].wordperj=H[i].wordperj;
+      Temp[index].totalword=H[i].totalword;
     }
   }
-
-  for(i=0 ; i< Temp->size ; i++){ //Se oles tis theseis tou neou hash pou den iparxoun dedomena arxikopio thn LList
-    if(Temp[i].word==NULL) Temp[i].List=CreateLList();
-  }
-
   FreeLHash(H);
   H=Temp;
   return H;
 }
 
-
-LHash* LHashPrint(LHash* H){
+LHash* LHashPrint(LHash* H){  //Ektiponei to Leksilogio
   int i;
+  int c=0;
   for(i=0 ; i<H->size ; i++){
-    if(H[i].word!=NULL) printf(" %d.%s-%.3f |",i,H[i].word,H[i].idf);
-  }
-  printf("\n");
-  for(i=1 ; i < H->height ; i++ ){
-    printf("%d",i);
-    for(int j=0 ; j< H->size ; j++){
-      if(H[j].word!=NULL) PrintLValue(H[j].List,i);
+    if(H[i].word!=NULL){
+      c++;
+      printf("%d.%s-%.5f\n",c,H[i].word,H[i].idf);
     }
-    printf("\n");
   }
 }
 
-
-void LHashTF(LHash* H ){
+void LHashIDF(LHash* H,double count){  //Ipolohizei to idf gia kathe leksh tou Leksilogiou
   int i,j;
+  int c=0;
   float kati,sum,new,ok;
-  for(i=1 ;i<H->height ; i++){ //Gia kathe protash
-      sum=0.0;
-      for(j=0 ; j< H->size ; j++){  //Gia kathe leksh ths protashs
-          if(H[j].word!=NULL){  //Ean sthn thesh afth tou Hash iparxoun dedomena
-              if(i==1){ //Ean einai h proth epanalhpsh ipologise to idf ths lekshs
-                ok=CountLList(H[j].List);
-                H[j].idf=log10((H->height-1)/ok);
-              }
-              kati=ReturnLValue(H[j].List,i); //H timh ths lekshs se afth thn protash
-              if(kati) sum+=kati; //afksise to sinoliko athrisma twn leksewn sthn protash
-          }
-      }
-
-      for(j=0 ; j< H->size ; j++){  //Gia kathe leksh ths protashs
-        if(H[j].word!=NULL){
-            kati=ReturnLValue(H[j].List,i);
-            if(kati){ //Ean h timh ths lekshs den einai 0 ipologise thn timh ths * tou idf ths lekshs
-              new=kati/sum;
-              new=new*H[j].idf;
-              ReplaceLValue(H[j].List,i,new);
-            }
-        }
-      }
-
-  }
+  for(i=0 ; i<H->size ; i++)
+    if(H[i].word!=NULL){
+      H[i].idf=log10(count/(H[i].wordperj));
+      //printf("Arkxiko idf:%f ",H[i].idf );
+      H[i].idf=H[i].idf*((H[i].totalword)/count);
+      //printf("tf:%f kai teliko idf:%f\n",(H[i].totalword)/count,H[i].idf);
+    }
 }
 
 
 int LHashFind(LHash* H,char* camera){ //Epistrefei 1 an iparxei  leksh sto hash allios 0
-  LList *L;
 	int j=0,index,exist=0;
 
   while(1){
@@ -382,7 +400,6 @@ LHash* NMostLHash(LHash* H,int n){ //Epistrefei ena Hash pou periexei mono tis n
   Temp=(LHash* )malloc( n *  sizeof(LHash) ); //Dimiourgo ena neo HasTable me n size
   Temp->size=n;
   Temp->count=n;
-  Temp->height=H->height;
   for(i=0 ; i<n ; i++){
     Temp[i].word=NULL;
     Temp[i].idf=0.0;
@@ -390,9 +407,7 @@ LHash* NMostLHash(LHash* H,int n){ //Epistrefei ena Hash pou periexei mono tis n
   for(i=0 ; i< n ; i++){  //Pernaw ta dedomena tou paliou sto neo HasTable
         Temp[i].word=H[i].word;
         Temp[i].idf=H[i].idf;
-        Temp[i].List=H[i].List;
         H[i].word=NULL;
-        H[i].List=NULL;
   }
   FreeLHash(H);
   H=Temp;
@@ -432,140 +447,62 @@ int LHashPartition(LHash** H,int lo,int hi){ //Evresh tou pivot kai metathesh to
 
 
 LHash* LHashSwap(LHash* H,int i,int j){ //Metathesh twn thesewn i kai j sto Hash
-  LList *T;
   char* tw;
   float ti;
 
-  T=H[i].List;
   tw=H[i].word;
   ti=H[i].idf;
 
   H[i].word=H[j].word;
-  H[i].List=H[j].List;
   H[i].idf=H[j].idf;
 
   H[j].word=tw;
-  H[j].List=T;
   H[j].idf=ti;
   return H;
-}
-
-LHash* Camera_to_string(Camera *camera,LHash* H){	 //return camera vocabulary (hash table)
-  LHashIncreaseHeight(H);
-	Spec_node* sn_ptr = camera->spec_List->first;
-	char* key = sn_ptr->key;
-	value_list* vl_ptr = sn_ptr->valuelist;
-	value_node* vn_ptr = vl_ptr->first;
-	char* value = vn_ptr->value;
-	char* key_vec, *value_vec;
-	int i=0;
-	char symbols[] =  " /,\\,[,],(,),*,&,^,%,$,#,@,!,:,;,<,>,`,~,+,_,-,=,|,.," " ";
-
-	while(sn_ptr != NULL){
-
-			key = sn_ptr->key;
-			key_vec = strtok(key, symbols);
-			i++;
-
-					while(key_vec != NULL){
-
-							key_vec = strtok(NULL, symbols);
-							if(key_vec != NULL){
-									i++;
-									for(int j=0; j<=strlen(key_vec);j++)
-      							if(key_vec[j]>=65 && key_vec[j]<=90)	key_vec[j]=key_vec[j]+32;
-									H=LHashInsert(H,key_vec);
-							}
-							vl_ptr = sn_ptr->valuelist;
-							vn_ptr = vl_ptr->first;
-
-									while(vn_ptr != NULL){
-
-											value = vn_ptr->value;
-											value_vec = strtok(value, symbols);
-											if(value_vec!=NULL){
-												for(int j=0; j<=strlen(value_vec);j++)
-		      								if(value_vec[j]>=65 && value_vec[j]<=90)	value_vec[j]=value_vec[j]+32;
-												i++;
-												H=LHashInsert(H,value_vec);
-											}
-
-												while(value_vec != NULL){
-
-														value_vec = strtok(NULL, symbols);
-														if(value_vec != NULL){
-															for(int j=0; j<=strlen(value_vec);j++)
-																if(value_vec[j]>=65 && value_vec[j]<=90)	value_vec[j]=value_vec[j]+32;
-																i++;
-												      H=LHashInsert(H,value_vec);
-														}
-												}
-												vn_ptr = vn_ptr->next;
-										}
-					}
-					sn_ptr = sn_ptr->next;
-			}
-      return H;
 }
 
 
 void FreeLHash(LHash* H){   //apodesmefsth tou Hash
   for(int i=0 ; i<H->size ; i++){
-    if(H[i].List!=NULL){
-      FreeLList(H[i].List);
-    }
     free(H[i].word);
   }
   free(H);
 }
 
-//==============================================================\\
 
-CList* FindClique(Camera* camera, Hash* H)
-{
-  if(camera == NULL)
-    return NULL;
-  NList* spec_ptr;
-  NList *nl = H->Head;
-  int i = 0, j = 0, in;
-  char name[20];
-    H->count++;
-  while(camera->id[i]!='/') //Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
-      i++;
-    i+=2;//pigeno to i sthn thesh pou arxizei o arithmos tou proiontos
-  while(i<strlen(camera->id))
-  {
-    name[j]=camera->id[i];
-    j++;
-    i++;
+LHash* Readjson(char* filename,LHash* H,LHash* Common,WHash** L){ //Diavazei to Json kai apothikei tis leksis sto leksilogio kai se ena WHash
+  FILE* fp;
+  if( (fp=fopen(filename,"r"))==NULL){
+    perror("Fopen");
   }
-  name[j]='\0';
-  in=atoi(name);//apothievo ton arithmo tou proiontos ston int in
-  int index=hash(in,H->size);
-  nl = H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
-  spec_ptr = nl->Next;  //spec_ptr deixnei sthn prwth camera ths listas nl
-  while(spec_ptr->camera != camera) //anazhthsh mexri na ve8eoun to c1 sto collision list
-  {
-    spec_ptr = spec_ptr->Next;
-    if(spec_ptr == NULL)  //h c1 den uparxei sth lista (oute sto hash)
-      return NULL;
-  }
-  return spec_ptr->clique;
-}
 
-int IsAMatch(Camera* c1, Camera* c2, Hash* H)
-{
-  if((c1 == NULL) || (c2 == NULL))
-    return -1;
+  char symbols[] =  " /,\\,\n,[,],(,),*,&,^,%,$,#,@,!,:,;,<,>,`,~,+,_,-,=,{,}|,\",.," " ";  //Ta simvolia ta opia tha xwrizoun tis lekseis
+  (*L)=CreateWHash(200);
+  char c;
+  char line[250];
+  char* word;
+  int count=0;
+  while(fgets(line, sizeof(line),fp)){  //Diavazei to json grami gami
 
-  Camera* c1_ptr, c2_ptr;
-  CList* clique1, *clique2;
+			word=strtok(line,symbols);
+	    while(word!=NULL){ //Gia kathe leksi tis gramhs
+				count++;
+				for(int j=0; j<=strlen(word);j++){  //Metatrepei ta kegalea se peza
+					if(word[j]>=65 && word[j]<=90)	word[j]=word[j]+32;
+  			}
+        if(!LHashFind(Common,word)){  //Ean h leksh den einai mia apo tis common
+          if(!WHashFind(*L,word)) {
+            H=LHashInsert(H,word,1); //Ean den exw isagi thn leksh allh fora sto stigekrimeno json
+          }else{
+            H=LHashInsert(H,word,0); //Ean den exw isagi thn leksh allh fora sto stigekrimeno json
+          }
+          *L=InsertWHash(*L,word);
+        }
+				word=strtok(NULL,symbols);
+			}
 
-  clique1 = FindClique(c1, H);
-  clique2 = FindClique(c2, H);
-
-  if(clique1 == clique2)
-    return 1;
-  else
-    return 0;
+	}
+  fclose(fp);
+  (*L)=WHashTF(*L); //Ipoligismos twn tf gia kathe leksh tou TF
+  return H;
 }

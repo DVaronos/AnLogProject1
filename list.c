@@ -3,13 +3,6 @@
 #include <stdlib.h>
 #include "list.h"
 
-#define TRAIN_PERC 60
-// #define TRAIN_PERC 67
-// #define TRAIN_PERC 50
-#define TEST_PERC 20
-// #define TEST_PERC 20
-// #define TEST_PERC 25
-
 //--------------------Sinartiseis gia thn domh CList-----------------------------\\
 
 
@@ -17,11 +10,8 @@ CList* CreateCList(){ //Dimiourgei mia nea CList
 	CList *L;
 	L=(CList *)malloc(sizeof(CList));
 	L->Next=NULL;
-  	L->name=NULL;
+  L->name=NULL;
 	L->Diffrend=NULL;
-	//--------------------------------------------------
-	L->camera_count = 0;
-	//--------------------------------------------------
 	return L;
 }
 
@@ -34,9 +24,6 @@ void InsertCList(CList* L,char* product,NList* Head){//Eisagei ena neo product s
 	N->Head=Head;
   N->Next=L->Next;
   L->Next=N;
-  //--------------------------------------------------
-  L->camera_count++;
-  //--------------------------------------------------
 }
 
 
@@ -109,8 +96,6 @@ CList* AppendCList(CList* L ,CList* N){
 	CList* T=L;
 	CList* Head;
 	Head=N; //To head einai h kefali ths listas N
-	int ncount = N->camera_count;
-	L->camera_count += ncount; 	//enhmerwnoume to count
 	N=N->Next; //O diktis N pleon dixnei ston porto komvo me dedomena ths listas N kai oxi stin kefali ths
 
 	if(Head->Diffrend!=NULL){ //	Oles oi klikes pou htan diaforetikes ap to head twra tha einai diaforetikes me thn L
@@ -178,7 +163,7 @@ int FindTList(TList* L,CList* node){//Epistrefei 0 an iparxi to node sthn lista 
 	return 1;
 }
 
-void InsertTList(TList* L,CList* node){
+void InsertTList(TList* L,CList* node){//Isagogi mias CList sthn TList
 		TList* N;
 		N=(TList*)malloc(sizeof(TList));
 		N->node=node;
@@ -186,7 +171,7 @@ void InsertTList(TList* L,CList* node){
 	  L->Next=N;
 }
 
-void RemoveTList(TList* L,CList* C){
+void RemoveTList(TList* L,CList* C){	//Diagrafi mias CList apo thn TList
 	TList* T;
 	while(L->Next!=NULL){
 		if(L->Next->node==C){
@@ -200,7 +185,7 @@ void RemoveTList(TList* L,CList* C){
 	}
 }
 
-int CountTList(TList* T){
+int CountTList(TList* T){	//Ipologixei to posous komvous exei h TList
 	int i=0;
 	while(T->Next!=NULL){
 		T=T->Next;
@@ -209,7 +194,7 @@ int CountTList(TList* T){
 	return i;
 }
 
-void FreeTList(TList* L){//Apodesmevi thn CList
+void FreeTList(TList* L){//Apodesmevi thn TList
   TList* T;
   while(L->Next!=NULL){
     T=L->Next;
@@ -219,22 +204,6 @@ void FreeTList(TList* L){//Apodesmevi thn CList
   }
   free(L);
 }
-
-// ===============================================================================
-void Print_Camera_Count_TList(TList* T)
-{
-	int i = 1;
-	TList* tptr = T->Next;
-	while(tptr != NULL)
-	{
-		printf("list %d has %d cameras\n", i, tptr->node->camera_count);
-		tptr = tptr->Next;
-		i++;
-	}
-}
-// ===============================================================================
-
-
 
 void FreeeTList(TList* L){  //Apodesmevi thn TList kai tis CList pou exei os dedomena
 	TList* T;
@@ -247,7 +216,7 @@ void FreeeTList(TList* L){  //Apodesmevi thn TList kai tis CList pou exei os ded
   free(L);
 }
 
-void ReplaceTList(TList* T,CList* P,CList* N){
+void ReplaceTList(TList* T,CList* P,CList* N){	//Antikathista mia CList sthn TList
 	while(T->Next!=NULL){
 		T=T->Next;
 		if(T->node==P){
@@ -260,7 +229,7 @@ void ReplaceTList(TList* T,CList* P,CList* N){
 //--------------------Sinartiseis gia thn domh NList-----------------------------\\
 
 
-NList* CreateNList(){ /*Dimiourgei mia nea SList*/
+NList* CreateNList(){ /*Dimiourgei mia nea WHash*/
 	NList *L;
 	L=(NList *)malloc(sizeof(NList));
 	L->Next=NULL;
@@ -268,11 +237,13 @@ NList* CreateNList(){ /*Dimiourgei mia nea SList*/
 	return L;
 }
 
-void InsertNList(NList* L,Camera* camera){//Eisagei ena neo product sthn arxh ths NList
+void InsertNList(NList* L,char* camera){//Eisagei ena neo product sthn arxh ths NList
 	NList *N;
   N=(NList*)malloc(sizeof(NList));
-  N->camera=camera;
+  N->camera=strdup(camera);
 	N->clique=NULL;
+	N->Spear=NULL;
+	N->vector=NULL;
   N->Next=L->Next;
   L->Next=N;
 }
@@ -281,7 +252,7 @@ void InsertNList(NList* L,Camera* camera){//Eisagei ena neo product sthn arxh th
 CList* ConectNList(NList* L,char* product,CList* clique){//Eisagei ena neo product sthn arxh ths CList
 	while(L->Next!=NULL){	//Vrisko ton komvo ston opio einai apothikevmeno to product
 		L=L->Next;
-		if(!strcmp(L->camera->id,product)){
+		if(!strcmp(L->camera,product)){
 				break;
 		}
 	}
@@ -312,7 +283,8 @@ CList* ConectNList(NList* L,char* product,CList* clique){//Eisagei ena neo produ
 void PrintNList(NList* L){//Ektiponei thn NList
   while(L->Next!=NULL){
     L=L->Next;
-		Camera_Print_Specs(L->camera);
+		printf("sthn %s\n",L->camera );
+		PrintWHash(L->Spear);
 	}
 }
 
@@ -346,7 +318,9 @@ void FreeNList(NList* L,TList* Deleted){//Apodesmevi thn NList
   while(L->Next!=NULL){
     T=L->Next;
     L->Next=T->Next;
-    if(T->camera!=NULL) Delete_Camera(T->camera);
+		if(T->Spear!=NULL) FreeWHash(T->Spear);
+		if(T->vector!=NULL)free(T->vector);
+    if(T->camera!=NULL) free(T->camera);
 		if(T->clique!=NULL){
 			if(FindTList(Deleted,T->clique)){//Ean h klika pou dixnei o komvos L den exei ektipothei
 				InsertTList(Deleted,T->clique);//Vale thn klika pou dixnei o komvos L stis ektipomenes
@@ -357,447 +331,180 @@ void FreeNList(NList* L,TList* Deleted){//Apodesmevi thn NList
   free(L);
 }
 
-//--------------------Sinartiseis gia thn domh LList-----------------------------\\
+
+//--------------------Sinartiseis gia thn domh WHash-----------------------------\\
 
 
-LList* CreateLList(){ //Dimiourgia mias neas LList
-	LList *L;
-	L=(LList *)malloc(sizeof(LList));
-	L->Next=NULL;
-	L->Last=NULL;
-  L->camera=NULL;
-	return L;
-
-}
-
-void InsertLList(LList* L,int value){	//Eisagei ena neo value stho telos ths LList
-	LList *N;
-  N=(LList*)malloc(sizeof(LList));
-	N->value=value;
-	N->Next=NULL;
-	if(L==NULL) printf("oxx\n");
-	if(L->Last==NULL){
-		L->Next=N;
-		L->Last=N;
-	}else{
-		L->Last->Next=N;
-		L->Last=N;
-
+WHash* CreateWHash(int size){ //Dimiourgia enos neou WHash
+	WHash *H;
+	H=(WHash *)malloc(sizeof(WHash)*size);
+	H->size=size;
+	H->count=0;
+	for(int i=0 ; i< size ; i++){//gia kathe bucket tou HashTable arxikopiise ta dedomena
+		H[i].word=NULL;
+		H[i].tf=0;
 	}
+	return H;
+
 }
 
-void FreeLList(LList* L){ //apodesmefsh ths listas
-	LList* T;
-	while(L->Next!=NULL){
-		T=L->Next;
-		L->Next=T->Next;
-		free(T);
-	}
-	free(L);
-}
+WHash* InsertWHash(WHash* H,char* word){	//Eisagei ena neo value stho WHash
+	int j=0,index,exist=0,r=0;
 
-void IncreaseLastValue(LList* L){ //Afkasmh thn timh tou telefteou komvou ths listas Kata ena
-  L->Last->value++;
-}
-
-void PrintLValue(LList* L,int h){
-  int i=0;
-  while(L->Next!=NULL){
-    L=L->Next;
-    i++;
-    if(i==h){
-      printf(" %f ",L->value);
+  while(1){ //Evresi tou bucket pou tha paei to neo product
+    if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish whashf
+      index=whashf(word,H->size);
+    }else{
+      index=(index+j*j)%(H->size);
+    }
+    if(H[index].word==NULL){  //Ean einai adio to bucket tha isagoume se afto thn leksh
+      break;
+    }else if(!strcmp(H[index].word,word)){  //Ean iparxi idi tha vgoume ap thn epanalipsh
+      exist=1;
       break;
     }
+    j++;
   }
+  if(!exist){ //Ean h leksh den iparxei idi
+    H->count++;
+    H[index].word=strdup(word);
+    H[index].tf=1;
+    float n=(1.0*H->count)/H->size;
+    if(n>=0.8){ //Ean h plirotita ftasei to 80% kanei rehash
+      H=Wrehash(H);
+    }
+  }else{	//Ean iparxi afksise to tf kata ena
+    H[index].tf=H[index].tf+1;
+  }
+  return H;
 }
 
-float ReturnLValue(LList* L,int h){	//Epistefh thn timh ths listas gia ipsos h
-  int i=0;
-  while(L->Next!=NULL){
-    L=L->Next;
-    i++;
-    if(i==h){
-      return L->value;
+WHash* Wrehash(WHash* H){
+  WHash*  Temp;
+  int i,index,j,exist;
+  Temp=(WHash* )malloc( (H->size*2) *  sizeof(WHash) ); //Dimiourgo ena neo HasTable me thn diplasia xoritikotita
+  Temp->size=H->size * 2;
+  Temp->count=H->count;
+  for(i=0 ; i< Temp->size ; i++){
+    Temp[i].word=NULL;
+    Temp[i].tf=0.0;
+  }
+  for(i=0 ; i< H->size ; i++){  //Pernaw ta dedomena tou paliou sto neo HasTable
+
+    if(H[i].word!=NULL){  //Ean to arxiko Hash exei dedomena se afthn thn thesh
+      j=0;
+      while(1){ //Evresi tou bucket pou tha paei to neo product
+        if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish hash
+          index=whashf(H[i].word,Temp->size);
+        }else{
+          index=(index+j*j)%(Temp->size);
+        }
+        if(Temp[index].word==NULL){  //Ean einai adio to bucket tha isagoume se afto thn camera
+          break;
+        }
+        j++;
+      }
+			//Antigrafi twn dedomenwn
+      Temp[index].word=strdup(H[i].word);
+      Temp[index].tf=H[i].tf;
     }
   }
+
+  FreeWHash(H);
+  return Temp;
 }
 
-void ReplaceLValue(LList* L,int h,float value){ //Antikathista thn timh ths listas sto h ipsos me value
-  int i=0;
-  while(L->Next!=NULL){
-    L=L->Next;
-    i++;
-    if(i==h){
-      L->value=value;
-			break;
+
+WHash* WHashTF(WHash* H ){
+	int count=WHashCount(H);	//Apothikevi to sinolo olwn twn leksewn ths cameras
+	for(int i=0 ; i<H->size ; i++){
+		if(H[i].word!=NULL){	//Gia kathe bucket pou periexei mia leksh
+			H[i].tf=(H[i].tf)/count;	//Ipologizw to tf gia thn antistih leksh
+		}
+	}
+	return H;
+}
+
+
+int whashf(char *str,int size){ //Hash sinartisi gia strings
+  int hash = 5381;
+  int c;
+  while (c = *str++)
+    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+  return abs(hash % size);;
+}
+
+
+int WHashCount(WHash* H){	//Ipologizei to sinoliko athrisma twn leksewn mias cameras
+	int count=0;
+	for(int i=0 ; i<H->size ; i++){
+		if(H[i].word!=NULL){
+			count+=H[i].tf;
+		}
+	}
+	return count;
+}
+
+
+int WHashFind(WHash* H,char* word){ //Epistrefei 1 an iparxei  leksh sto hash allios 0
+	int j=0,index,exist=0;
+
+  while(1){
+    if(!j){
+      index=whashf(word,H->size);
+    }else{
+      index=(index+j*j)%(H->size);
     }
-  }
-}
-
-float CountLList(LList* L){		//Episteh to athrisma twn timwn ths listas
-  float sum=0;
-  while(L->Next!=NULL){
-    L=L->Next;
-    if(L->value){
-      sum++;
+    if(H[index].word==NULL){
+      break;
+    }else if(!strcmp(H[index].word,word)){
+      exist=1;
+      break;
     }
+    j++;
+    if(j==H->size) break;
   }
-	return sum;
+  return exist;
 }
 
-void PrintLList(LList* L){
-	printf("[");
-  while(L->Next!=NULL){
-    L=L->Next;
-    printf(" %f ",L->value);
+
+double GiveTF(WHash* H,char* camera){ //Epistrefei thn timh tou tf an iparxei h leksh allios 0
+	int j=0,index,exist=0;
+
+  while(1){
+    if(!j){
+      index=whashf(camera,H->size);
+    }else{
+      index=(index+j*j)%(H->size);
+    }
+    if(H[index].word==NULL){
+      break;
+    }else if(!strcmp(H[index].word,camera)){
+      return H[index].tf;
+      break;
+    }
+    j++;
+    if(j==H->size) break;
   }
-	printf("]\n");
+  return 0;
 }
 
-//--------------------Sinartiseis gia thn domh TrainSetList-----------------------------\\
 
-TrainSetList* InitializeTrainSetList()
-{
-	TrainSetList* tsl;
-	tsl = malloc(sizeof(TrainSetList));
-	tsl->camera_count = 0;
-	tsl->first = NULL;
-	tsl->last = NULL;
-	return tsl;
+void FreeWHash(WHash* H){   //apodesmefsth tou Hash
+  for(int i=0 ; i<H->size ; i++){
+    if(H[i].word!=NULL) free(H[i].word);
+  }
+  free(H);
 }
 
-TrainSetList* InsertCameraToTrainSetList(TrainSetList* tsl, Camera* camera)
-{
-	TrainSetNode* tsn = InitializeTrainSetNode(camera);
-	if(tsl->first == NULL)
-		tsl->first = tsn;
-	if(tsl->last != NULL)
-		tsl->last->next = tsn;
-	tsl->last = tsn;
-	tsl->camera_count++;
-	return tsl;
-}
 
-void PrintTrainSetList(TrainSetList* tsl)
-{
-	TrainSetNode* tsn = tsl->first;
-	printf("---------------Training Set--------------- \n");
-	if(tsl != NULL)
-		while(tsn != NULL)
-		{
-			PrintTrainSetNode(tsn);
-			tsn = tsn->next;
+void PrintWHash(WHash* H){
+	int c=0;
+	for(int i=0 ; i<H->size ; i++){
+		if(H[i].word!=NULL){
+			c++;
+			printf("	%dh:%s-%f\n",c,H[i].word,H[i].tf);
 		}
-	else
-		printf("Empty Train Set List\n");
-}
-
-
-void PrintTrainSetCameraCount(TrainSetList* tsl)
-{
-	printf("Train Set contains %d cameras\n", tsl->camera_count);
-}
-
-int FreeTrainSetList(TrainSetList* tsl)
-{
-	if(tsl == NULL)
-	{
-		printf("Empty Train Set List\n");
-		return 0;
-	}
-	TrainSetNode* tsn = tsl->first;
-	TrainSetNode* tsn2;
-	while(tsn != NULL)
-	{
-		tsn2 = tsn->next;
-		FreeTrainSetNode(tsn);
-		tsn = tsn2;
-	}
-	free(tsl);
-	return 1;
-}
-
-//--------------------Sinartiseis gia thn domh TrainSetNode-----------------------------\\
-
-TrainSetNode* InitializeTrainSetNode(Camera* camera)
-{
-	TrainSetNode* tsn;
-	tsn = malloc(sizeof(TrainSetNode));
-	tsn->camera = camera;
-	tsn->next = NULL;
-	return tsn;
-}
-
-void PrintTrainSetNode(TrainSetNode* tsn)
-{
-	if(tsn != NULL)
-		printf("camera's id %s\n", tsn->camera->id);
-	else
-		printf("Train Set node is NULL\n");
-}
-
-int FreeTrainSetNode(TrainSetNode* tsn)
-{
-	if(tsn == NULL)
-	{
-		// empty node
-		return 0;
-	}
-	free(tsn);
-	return 1;
-}
-
-//--------------------Sinartiseis gia thn domh TestSetList-----------------------------\\
-
-TestSetList* InitializeTestSetList()
-{
-	TestSetList* tsl;
-	tsl = malloc(sizeof(TestSetList));
-	tsl->camera_count = 0;
-	tsl->first = NULL;
-	tsl->last = NULL;
-	return tsl;
-}
-
-TestSetList* InsertCameraToTestSetList(TestSetList* tsl, Camera* camera)
-{
-	TestSetNode* tsn = InitializeTestSetNode(camera);
-	if(tsl->first == NULL)
-		tsl->first = tsn;
-	if(tsl->last != NULL)
-		tsl->last->next = tsn;
-	tsl->last = tsn;
-	tsl->camera_count++;
-	return tsl;
-}
-
-void PrintTestSetList(TestSetList* tsl)
-{
-	TestSetNode* tsn = tsl->first;
-	printf("---------------Training Set--------------- \n");
-
-	if(tsl != NULL)
-		while(tsn != NULL)
-		{
-			PrintTestSetNode(tsn);
-			tsn = tsn->next;
-		}
-	else
-		printf("Empty Test Set List\n");
-}
-
-void PrintTestSetCameraCount(TestSetList* tsl)
-{
-	printf("Test Set contains %d cameras\n", tsl->camera_count);
-}
-
-int FreeTestSetList(TestSetList* tsl)
-{
-	if(tsl == NULL)
-	{
-		printf("Empty Test Set List\n");
-		return 0;
-	}
-	TestSetNode* tsn = tsl->first;
-	TestSetNode* tsn2;
-	while(tsn != NULL)
-	{
-		tsn2 = tsn->next;
-		FreeTestSetNode(tsn);
-		tsn = tsn2;
-	}
-	free(tsl);
-	return 1;
-}
-
-
-//--------------------Sinartiseis gia thn domh TestSetNode-----------------------------\\
-
-TestSetNode* InitializeTestSetNode(Camera* camera)
-{
-	TestSetNode* tsn;
-	tsn = malloc(sizeof(TestSetNode));
-	tsn->camera = camera;
-	tsn->next = NULL;
-	return tsn;
-}
-
-void PrintTestSetNode(TestSetNode* tsn)
-{
-	if(tsn != NULL)
-		printf("camera's id %s\n", tsn->camera->id);
-	else
-		printf("Test Set node is NULL\n");
-}
-
-int FreeTestSetNode(TestSetNode* tsn)
-{
-	if(tsn == NULL)
-	{
-		// empty node
-		return 0;
-	}
-	free(tsn);
-	return 1;
-}
-
-// --------------------------------------------------------------------------------------\\
-
-void Percentage_Calculation(int camera_count, int* train_perc, int* test_perc)
-{
-	*train_perc = (camera_count * TRAIN_PERC) / 100;
-	*test_perc = (camera_count * TEST_PERC) / 100;
-}
-
-// --------------------------------------------------------------------------------------\\
-
-
-void SplitToTrainTestValidationSet(TrainSetList** trainsl, TestSetList** testsl, ValidationSetList** validationsl,  TList* tl)
-{
-	int set_count, i, train_perc, test_perc;	//i-> poses cameres exoume diavasei (kai valei sto set train) apo thn ka8e klika
-	TList* tlptr = tl->Next; 	//Tlist node ptr (twra deixnei sto prwto node me dedomena (epomeno apo thn kefalida))
-	// CList* cnptr = tl->node;	//clist node ptr (twra deixnei sthn clist gia thn prwth klika?)
-	CList* cnptr;
-
-	*trainsl = InitializeTrainSetList();
-	*testsl = InitializeTestSetList();
-	*validationsl = InitializeValidationSetList();
-
-	while(tlptr != NULL)
-	{
-		cnptr = tlptr->node;
-		Percentage_Calculation(cnptr->camera_count, &train_perc, &test_perc);
-		i = 0;
-		cnptr = cnptr->Next;
-		while(cnptr != NULL)
-		{
-			if(i < train_perc)
-				*trainsl = InsertCameraToTrainSetList(*trainsl, cnptr->Head->camera);	//apo thn klika pisw sto ->  antistoixo node tou hash -> camera
-			else if ( i <= train_perc + test_perc)
-				*testsl = InsertCameraToTestSetList(*testsl, cnptr->Head->camera);
-			else
-				*validationsl = InsertCameraToValidationSetList(*validationsl, cnptr->Head->camera);
-			i++;
-			cnptr = cnptr->Next;
-		}
-
-		tlptr = tlptr->Next;
 	}
 }
-
-//--------------------Sinartiseis gia thn domh ValidationSetList-----------------------------\\
-
-ValidationSetList* InitializeValidationSetList()
-{
-	ValidationSetList* vsl;
-	vsl = malloc(sizeof(ValidationSetList));
-	vsl->camera_count = 0;
-	vsl->first = NULL;
-	vsl->last = NULL;
-	return vsl;
-}
-
-ValidationSetList* InsertCameraToValidationSetList(ValidationSetList* vsl, Camera* camera)
-{
-	ValidationSetNode* vsn = InitializeValidationSetNode(camera);
-	if(vsl->first == NULL)
-		vsl->first = vsn;
-	if(vsl->last != NULL)
-		vsl->last->next = vsn;
-	vsl->last = vsn;
-	vsl->camera_count++;
-	return vsl;
-}
-
-void PrintValidationSetList(ValidationSetList* vsl)
-{
-	ValidationSetNode* vsn = vsl->first;
-	printf("---------------Training Set--------------- \n");
-
-	if(vsl != NULL)
-		while(vsn != NULL)
-		{
-			PrintValidationSetNode(vsn);
-			vsn = vsn->next;
-		}
-	else
-		printf("Empty Validation Set List\n");
-}
-
-void PrintValidationSetCameraCount(ValidationSetList* vsl)
-{
-	printf("Validation Set contains %d cameras\n", vsl->camera_count);
-}
-
-int FreeValidationSetList(ValidationSetList* vsl)
-{
-	if(vsl == NULL)
-	{
-		printf("Empty Test Set List\n");
-		return 0;
-	}
-	ValidationSetNode* vsn = vsl->first;
-	ValidationSetNode* vsn2;
-	while(vsn != NULL)
-	{
-		vsn2 = vsn->next;
-		FreeValidationSetNode(vsn);
-		vsn = vsn2;
-	}
-	free(vsl);
-	return 1;
-}
-
-//--------------------Sinartiseis gia thn domh ValidationSetNode-----------------------------\\
-
-ValidationSetNode* InitializeValidationSetNode(Camera* camera)
-{
-	ValidationSetNode* vsn;
-	vsn = malloc(sizeof(ValidationSetNode));
-	vsn->camera = camera;
-	vsn->next = NULL;
-	return vsn;
-}
-
-void PrintValidationSetNode(ValidationSetNode* vsn)
-{
-	if(vsn != NULL)
-		printf("camera's id %s\n", vsn->camera->id);
-	else
-		printf("Validation Set node is NULL\n");
-}
-
-int FreeValidationSetNode(ValidationSetNode* vsn)
-{
-	if(vsn == NULL)
-	{
-		// empty node
-		return 0;
-	}
-	free(vsn);
-	return 1;
-}
-
-//-------------------------------------------------------------------------------------------\\
-
-void PrintAllPairsTrainSet(TrainSetList* tsl)
-{
-	TrainSetNode* tsn1_ptr, *tsn2_ptr;
-	tsn1_ptr = tsl->first;
-	while(tsn1_ptr != NULL)
-	{
-		tsn2_ptr = tsn1_ptr->next;
-		while(tsn2_ptr != NULL)
-		{
-			printf("\n");
-			PrintTrainSetNode(tsn1_ptr);
-			PrintTrainSetNode(tsn2_ptr);
-			printf("==============================\n");
-			tsn2_ptr = tsn2_ptr->next;
-		}
-		tsn1_ptr = tsn1_ptr->next;
-	}
-
-}
-
