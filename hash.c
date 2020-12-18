@@ -173,17 +173,35 @@ void HashPrint(Hash* H){//Ektiponei to HashTable
 	}
 }
 
+void HashPrintP(Hash* H){//Ektiponei to HashTable
+	NList *L;
+  int c;
+	for(int i=0 ; i<H->size ; i++){
+		L=(NList*)H[i].Head;
+		while(L->Next!=NULL){
+      L=L->Next;
+      for(int i=0 ; i<1000 ; i++){
+        if(L->vector[i]) c++;
+      }
+    }
+
+	}
+}
+
 Hash* HashVectorts(Hash* H,LHash* Lek){ //Dimiourgei ena vector gia kathe camera
 	NList *L;
-  double tf;
+  double tf,c=0,p=0;
+
 	for(int i=0 ; i<H->size ; i++){  //Gia kathe bucket tou Hash
 		L=(NList*)H[i].Head;
 		while(L->Next!=NULL){ //Gia kathe komvo ths NList(ara gia kathe kameras)
       L=L->Next;
       L->vector=malloc(sizeof(double )*Lek->size);  //Dimiourgia enos noeu vector Lek->size thesewn
       for(int j=0 ; j<Lek->size ; j++){ //Gia kathe leksh tou Lek
-        tf=GiveTF(L->Spear,Lek[j].word);  //Pernw to tf ths lekshs an iparxei sthn camera alios to tf ginete 0
-        L->vector[j]=tf*Lek[j].idf; //Ipologizw to tf*idf
+        tf=GiveTfIdf(L->Spear,Lek[j].word);  //Pernw to tf ths lekshs an iparxei sthn camera alios to tf ginete 0
+        if(tf) c++;
+        if(Lek[j].tfcount==0) p++;
+        L->vector[j]=tf*Lek[j].tfcount;
       }
       FreeWHash(L->Spear);  //Apodemsevw to WHash ths cameras afou pleon den to xriazome
       L->Spear=NULL;
@@ -267,14 +285,14 @@ LHash* LHashCreate(int size){ //Dimiourgei ena neo LHashTable megetous size
   for(i=0 ; i< size ; i++){ //gia kathe bucket tou LHashTable arxikopiei ta dedomena tou
     H[i].word=NULL;
     H[i].idf=0.0;
+    H[i].tfcount=0;
     H[i].wordperj=0;
-    H[i].totalword=0;
 	}
 	return H;
 }
 
 
-LHash* LHashInsert(LHash* H,char* camera,int flag){ /*Eisagei enan neo product sto LHashTable*/
+LHash* LHashInsert(LHash* H,char* camera){ /*Eisagei enan neo product sto LHashTable*/
 	int j=0,index,exist=0,r=0;
 
   while(1){ //Evresi tou bucket pou tha paei to neo product
@@ -295,14 +313,12 @@ LHash* LHashInsert(LHash* H,char* camera,int flag){ /*Eisagei enan neo product s
     H->count++;
     H[index].word=strdup(camera);
     H[index].wordperj=1;
-    H[index].totalword=1;
     float n=(1.0*H->count)/H->size;
     if(n>=0.8){ //Ean h plirotita ftasei to 80% kanei rehash
       H=Lrehash(H);
     }
   }else{
-    if(flag) H[index].wordperj=H[index].wordperj+1;
-    H[index].totalword=H[index].totalword+1;
+    H[index].wordperj=H[index].wordperj+1;
   }
   return H;
 }
@@ -317,8 +333,8 @@ LHash* Lrehash(LHash* H){
   for(i=0 ; i< Temp->size ; i++){
     Temp[i].word=NULL;
     Temp[i].idf=0.0;
+    Temp[i].tfcount=0;
     Temp[i].wordperj=0;
-    Temp[i].totalword=0;
   }
   for(i=0 ; i< H->size ; i++){  //Pernaw ta dedomena tou paliou sto neo HasTable
 
@@ -337,7 +353,8 @@ LHash* Lrehash(LHash* H){
       }
       Temp[index].word=strdup(H[i].word);
       Temp[index].wordperj=H[i].wordperj;
-      Temp[index].totalword=H[i].totalword;
+      Temp[index].idf=H[i].idf;
+      Temp[index].tfcount=H[i].tfcount;
     }
   }
   FreeLHash(H);
@@ -346,26 +363,28 @@ LHash* Lrehash(LHash* H){
 }
 
 LHash* LHashPrint(LHash* H){  //Ektiponei to Leksilogio
-  int i;
-  int c=0;
+  int i,c=0;
   for(i=0 ; i<H->size ; i++){
     if(H[i].word!=NULL){
       c++;
-      printf("%d.%s-%.5f\n",c,H[i].word,H[i].idf);
+      printf("%d.%s-%f-%f\n",c,H[i].word,H[i].idf,H[i].tfcount);
     }
   }
 }
 
-void LHashIDF(LHash* H,double count){  //Ipolohizei to idf gia kathe leksh tou Leksilogiou
-  int i,j;
-  int c=0;
-  float kati,sum,new,ok;
-  for(i=0 ; i<H->size ; i++)
-    if(H[i].word!=NULL){
-      H[i].idf=log10(count/(H[i].wordperj));
-      //printf("Arkxiko idf:%f ",H[i].idf );
-      H[i].idf=H[i].idf*((H[i].totalword)/count);
-      //printf("tf:%f kai teliko idf:%f\n",(H[i].totalword)/count,H[i].idf);
+void LHashTfIdf(LHash* Lek,double count){ //Dimiourgei ena vector gia kathe camera
+	NList *L;
+  double t;
+  int wc=0;
+	for(int i=0 ; i<Lek->size ; i++){  //Gia kathe bucket tou leksilogiou
+    if(Lek[i].word!=NULL){  //An iparxei leksh
+        wc++;
+        Lek[i].idf=log10(count/(Lek[i].wordperj));//Ipologizo to idf
+        t=Lek[i].idf;
+        Lek[i].idf=(Lek[i].idf*Lek[i].tfcount)/count;//Ipologizo to meso tf-idf
+        Lek[i].tfcount=t; //krataw to idf sto tfcoun
+      }
+      if(wc==Lek->count) break;
     }
 }
 
@@ -403,10 +422,12 @@ LHash* NMostLHash(LHash* H,int n){ //Epistrefei ena Hash pou periexei mono tis n
   for(i=0 ; i<n ; i++){
     Temp[i].word=NULL;
     Temp[i].idf=0.0;
+    Temp[i].tfcount=0.0;
   }
   for(i=0 ; i< n ; i++){  //Pernaw ta dedomena tou paliou sto neo HasTable
         Temp[i].word=H[i].word;
         Temp[i].idf=H[i].idf;
+        Temp[i].tfcount=H[i].tfcount;
         H[i].word=NULL;
   }
   FreeLHash(H);
@@ -448,16 +469,19 @@ int LHashPartition(LHash** H,int lo,int hi){ //Evresh tou pivot kai metathesh to
 
 LHash* LHashSwap(LHash* H,int i,int j){ //Metathesh twn thesewn i kai j sto Hash
   char* tw;
-  float ti;
+  double ti,tic;
 
   tw=H[i].word;
   ti=H[i].idf;
+  tic=H[i].tfcount;
 
   H[i].word=H[j].word;
   H[i].idf=H[j].idf;
+  H[i].tfcount=H[j].tfcount;
 
   H[j].word=tw;
   H[j].idf=ti;
+  H[j].tfcount=tic;
   return H;
 }
 
@@ -469,6 +493,27 @@ void FreeLHash(LHash* H){   //apodesmefsth tou Hash
   free(H);
 }
 
+
+LHash* LHashIncreaseTf(LHash* H,char* word,double tf){
+  int j=0,index,exist=0;
+
+  while(1){
+    if(!j){
+      index=hash1(word,H->size);
+    }else{
+      index=(index+j*j)%(H->size);
+    }
+    if(H[index].word==NULL){
+      break;
+    }else if(!strcmp(H[index].word,word)){
+      H[index].tfcount=H[index].tfcount+tf;
+      break;
+    }
+    j++;
+    if(j==H->size) break;
+  }
+  return H;
+}
 
 LHash* Readjson(char* filename,LHash* H,LHash* Common,WHash** L){ //Diavazei to Json kai apothikei tis leksis sto leksilogio kai se ena WHash
   FILE* fp;
@@ -491,11 +536,7 @@ LHash* Readjson(char* filename,LHash* H,LHash* Common,WHash** L){ //Diavazei to 
 					if(word[j]>=65 && word[j]<=90)	word[j]=word[j]+32;
   			}
         if(!LHashFind(Common,word)){  //Ean h leksh den einai mia apo tis common
-          if(!WHashFind(*L,word)) {
-            H=LHashInsert(H,word,1); //Ean den exw isagi thn leksh allh fora sto stigekrimeno json
-          }else{
-            H=LHashInsert(H,word,0); //Ean den exw isagi thn leksh allh fora sto stigekrimeno json
-          }
+          if(!WHashFind(*L,word))  H=LHashInsert(H,word); //Ean den exw isagi thn leksh allh fora sto stigekrimeno json
           *L=InsertWHash(*L,word);
         }
 				word=strtok(NULL,symbols);
@@ -504,5 +545,10 @@ LHash* Readjson(char* filename,LHash* H,LHash* Common,WHash** L){ //Diavazei to 
 	}
   fclose(fp);
   (*L)=WHashTF(*L); //Ipoligismos twn tf gia kathe leksh tou TF
+  for(int i=0 ; i<(*L)->size ; i++){
+    if((*L)[i].word!=NULL){
+      H=LHashIncreaseTf(H,(*L)[i].word,(*L)[i].tfidf);
+    }
+  }
   return H;
 }
