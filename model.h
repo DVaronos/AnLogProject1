@@ -16,7 +16,7 @@ double P(double* vectror_array, Model* model);
 double ProbToBeAMatch(double p);
 double ProbNotToBeAMatch(double p);
 
-int IsMatch(double p);
+int PredictMatch(double p);
 
 void PrintWeightArray(Model* model);
 

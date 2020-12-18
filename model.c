@@ -69,7 +69,7 @@ double ProbNotToBeAMatch(double p)
 	return 1 - p;
 }
 
-int IsMatch(double p)
+int PredictMatch(double p)
 {
 	int res = ProbToBeAMatch - ProbNotToBeAMatch;
 	if(res > 1)
@@ -223,12 +223,14 @@ void PrintInput(Input* input)
   		// if(j == 5)
   		// {printf("|||||\t");	j = input->weight_size - 5;}
     }
-     		if(nonzero != 0)
+     	if(nonzero != 0)
  		{	
  			// printf("non zero is %d\n", nonzero);
  			nztotal++;
  		}
     // printf(" -----> %d\n", input->matches_array[i]);
+    // printf(" \tnonzero elements are : %d / %d\n", nonzero,input->weight_size);
+
     // printf("\n");
   }
   printf("nonzero total are: %d \n", nztotal);
@@ -283,32 +285,35 @@ Model* Training(Model* model, Input* input)
 	// elegxetai sxetika me to learning rate
 	// an einai ikanopoihtika mikrh h diafora pame sthn epomenh leksh
 	// alliws ksanaupologizetai gia thn idia
-	int j=0;
+	int j=0, prediction;
 	int max_train = 100;
 	int ttimes = 0;
-	while(j<input->weight_size)	// gia ka8e leksh sto vocabulary
+	for(j=0; j<input->weight_size; j++)	// gia ka8e leksh sto vocabulary
 	{
 		correct_value = input->matches_array[j];
 
 		old_weight = model->weight_array[j];
 		for(i=0; i<input->matches_array_size; i++)
 		{	
-			*result = *result + (P(input->vector_array[i], model) - correct_value) * input->vector_array[i][j];
+			// prediction = P(input->vector_array[i], model);
+			// printf("prediction -> %d\n", prediction);
+			*result = *result + (P(input->vector_array[i], model) - correct_value) * (input->vector_array[i][j]);
 		}
 
-		model->weight_array[j] = model->weight_array[j] - (LEARNING_RATE*(*result));
-		if((model->weight_array[j] - old_weight) < VERY_SMALL_NUMBER )	//telos train gi auth th leksh
-		{
-			j++;
-			ttimes = 0;
-		}
-		else
-			ttimes++;
-		if(max_train == ttimes)
-		{
-			j++;
-			ttimes = 0;
-		}
+		model->weight_array[j] = model->weight_array[j] - *result;
+		// model->weight_array[j] = model->weight_array[j] - (LEARNING_RATE*(*result));
+		// if((model->weight_array[j] - old_weight) < VERY_SMALL_NUMBER )	//telos train gi auth th leksh
+		// {
+		// 	j++;
+		// 	ttimes = 0;
+		// }
+		// else
+		// 	ttimes++;
+		// if(max_train == ttimes)
+		// {
+		// 	j++;
+		// 	ttimes = 0;
+		// }
 		//alliws ksanagineai train gia thn idia leksh
 	}
 	return model;

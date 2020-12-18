@@ -224,7 +224,7 @@ int main( int argc, char *argv[] ){
   fclose(dcsv);
 
   Input* input = MakeInputArray("Same.csv", "Diffrend.csv", H);
-  // PrintInput(input);
+  PrintInput(input);
   Model *model = Training(model, input);
   PrintWeightArray(model);
 
