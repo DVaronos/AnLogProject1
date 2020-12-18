@@ -10,8 +10,11 @@ CList* CreateCList(){ //Dimiourgei mia nea CList
 	CList *L;
 	L=(CList *)malloc(sizeof(CList));
 	L->Next=NULL;
-  L->name=NULL;
+  	L->name=NULL;
 	L->Diffrend=NULL;
+	//--------------------------------------------------
+	L->camera_count = 0;
+	//--------------------------------------------------
 	return L;
 }
 
@@ -24,6 +27,9 @@ void InsertCList(CList* L,char* product,NList* Head){//Eisagei ena neo product s
 	N->Head=Head;
   N->Next=L->Next;
   L->Next=N;
+  //--------------------------------------------------
+  L->camera_count++;
+  //--------------------------------------------------
 }
 
 
@@ -96,6 +102,10 @@ CList* AppendCList(CList* L ,CList* N){
 	CList* T=L;
 	CList* Head;
 	Head=N; //To head einai h kefali ths listas N
+
+	int ncount = N->camera_count;
+	L->camera_count += ncount; 	//enhmerwnoume to count
+
 	N=N->Next; //O diktis N pleon dixnei ston porto komvo me dedomena ths listas N kai oxi stin kefali ths
 
 	if(Head->Diffrend!=NULL){ //	Oles oi klikes pou htan diaforetikes ap to head twra tha einai diaforetikes me thn L
@@ -193,6 +203,22 @@ int CountTList(TList* T){	//Ipologixei to posous komvous exei h TList
 	}
 	return i;
 }
+
+
+// ===============================================================================
+void Print_Camera_Count_TList(TList* T)
+{
+	int i = 1;
+	TList* tptr = T->Next;
+	while(tptr != NULL)
+	{
+		printf("list %d has %d cameras\n", i, tptr->node->camera_count);
+		tptr = tptr->Next;
+		i++;
+	}
+}
+// ===============================================================================
+
 
 void FreeTList(TList* L){//Apodesmevi thn TList
   TList* T;

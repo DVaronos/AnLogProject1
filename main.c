@@ -5,8 +5,8 @@
 #include <sys/times.h>
 #include <dirent.h>
 #include <sys/times.h>
-#include "hash.h"
-
+// #include "hash.h"
+#include "model.h"
 int main( int argc, char *argv[] ){
 
     double t1, t2,time,ticspersec;
@@ -204,6 +204,8 @@ int main( int argc, char *argv[] ){
 
   printf("OLA KALA ME TIS KLIKES TON JSON\n");
 
+  // printf("VECTORS %f\n", H[1].Head->Next);
+
 
   scsv=fopen("Same.csv","w+"); //Dimiourgw ena neo csv arxio
   fprintf(scsv,"left_spec_id, right_spec_id\n");
@@ -211,17 +213,28 @@ int main( int argc, char *argv[] ){
   dcsv=fopen("Diffrend.csv","w+"); //Dimiourgw ena neo csv arxio
   fprintf(dcsv,"left_spec_id, right_spec_id\n");
 
-  HashTransfer(H,scsv); //Pernaw ta teriasmata sto csv arxio
+  TList* qlique_list = HashTransfer(H,scsv); //Pernaw ta teriasmata sto csv arxio
   HashDiff(H,dcsv);
+
+  // Print_Camera_Count_TList(qlique_list);
 
   printf("OLA KALA ME TA NEA CSV FILES\n");
 
+  fclose(scsv);
+  fclose(dcsv);
+
+  Input* input = MakeInputArray("Same.csv", "Diffrend.csv", H);
+  // PrintInput(input);
+  Model *model = Training(model, input);
+  PrintWeightArray(model);
+
+  FreeModel(model);
+
+  FreeTList(qlique_list);
   FreeHash(H);
   free(temp);
   free(wfile);
   free(dd);
-  fclose(scsv);
-  fclose(dcsv);
   closedir(directory);
 
   t2 = (double) times(&tb2);

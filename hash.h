@@ -9,7 +9,7 @@ typedef struct ht{
 }Hash;
 
 void HashConect(Hash* ,char*,char* ,int );
-void HashTransfer(Hash* ,FILE* );
+TList* HashTransfer(Hash* ,FILE* );
 void HashPrint(Hash* );
 void FreeHash(Hash* );
 void HashDiff(Hash* ,FILE* );

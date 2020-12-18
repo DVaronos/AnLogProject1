@@ -143,14 +143,14 @@ void HashConect(Hash* H,char* first,char* second,int match){ /*Eisagei enan neo 
 }
 
 
-void HashTransfer(Hash* H,FILE* csvfile){//Metaferi ta proionta poy teriazoun se ena csv arxio
-	NList *L;
+TList* HashTransfer(Hash* H,FILE* csvfile){//Metaferi ta proionta poy teriazoun se ena csv arxio
+  NList *L;
   TList* Transfered=CreateTList();
-	for(int i=0 ; i<H->size ; i++){
-		L=(NList*)H[i].Head;
-		TransferNList(L,Transfered,csvfile);
-	}
-  FreeTList(Transfered);
+  for(int i=0 ; i<H->size ; i++){
+    L=(NList*)H[i].Head;
+    TransferNList(L,Transfered,csvfile);
+  }
+  return Transfered;
 }
 
 
@@ -185,6 +185,9 @@ Hash* HashVectorts(Hash* H,LHash* Lek){ //Dimiourgei ena vector gia kathe camera
         tf=GiveTF(L->Spear,Lek[j].word);  //Pernw to tf ths lekshs an iparxei sthn camera alios to tf ginete 0
         L->vector[j]=tf*Lek[j].idf; //Ipologizw to tf*idf
       }
+      // ============================
+      L->vec_size = Lek->size;
+      // ============================
       FreeWHash(L->Spear);  //Apodemsevw to WHash ths cameras afou pleon den to xriazome
       L->Spear=NULL;
     }
