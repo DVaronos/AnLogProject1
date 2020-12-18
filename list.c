@@ -309,8 +309,8 @@ CList* ConectNList(NList* L,char* product,CList* clique){//Eisagei ena neo produ
 void PrintNList(NList* L){//Ektiponei thn NList
   while(L->Next!=NULL){
     L=L->Next;
-		printf("sthn %s\n",L->camera );
-		PrintWHash(L->Spear);
+	//	printf("sthn %s\n",L->camera );
+		//PrintWHash(L->Spear);
 	}
 }
 
@@ -368,7 +368,7 @@ WHash* CreateWHash(int size){ //Dimiourgia enos neou WHash
 	H->count=0;
 	for(int i=0 ; i< size ; i++){//gia kathe bucket tou HashTable arxikopiise ta dedomena
 		H[i].word=NULL;
-		H[i].tf=0;
+		H[i].tfidf=0;
 	}
 	return H;
 
@@ -381,7 +381,7 @@ WHash* InsertWHash(WHash* H,char* word){	//Eisagei ena neo value stho WHash
     if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish whashf
       index=whashf(word,H->size);
     }else{
-      index=(index+j*j)%(H->size);
+      index=(index+j)%(H->size);
     }
     if(H[index].word==NULL){  //Ean einai adio to bucket tha isagoume se afto thn leksh
       break;
@@ -394,13 +394,13 @@ WHash* InsertWHash(WHash* H,char* word){	//Eisagei ena neo value stho WHash
   if(!exist){ //Ean h leksh den iparxei idi
     H->count++;
     H[index].word=strdup(word);
-    H[index].tf=1;
+    H[index].tfidf=1;
     float n=(1.0*H->count)/H->size;
     if(n>=0.8){ //Ean h plirotita ftasei to 80% kanei rehash
       H=Wrehash(H);
     }
   }else{	//Ean iparxi afksise to tf kata ena
-    H[index].tf=H[index].tf+1;
+    H[index].tfidf=H[index].tfidf+1;
   }
   return H;
 }
@@ -413,7 +413,7 @@ WHash* Wrehash(WHash* H){
   Temp->count=H->count;
   for(i=0 ; i< Temp->size ; i++){
     Temp[i].word=NULL;
-    Temp[i].tf=0.0;
+    Temp[i].tfidf=0.0;
   }
   for(i=0 ; i< H->size ; i++){  //Pernaw ta dedomena tou paliou sto neo HasTable
 
@@ -423,7 +423,7 @@ WHash* Wrehash(WHash* H){
         if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish hash
           index=whashf(H[i].word,Temp->size);
         }else{
-          index=(index+j*j)%(Temp->size);
+          index=(index+j)%(Temp->size);
         }
         if(Temp[index].word==NULL){  //Ean einai adio to bucket tha isagoume se afto thn camera
           break;
@@ -432,7 +432,7 @@ WHash* Wrehash(WHash* H){
       }
 			//Antigrafi twn dedomenwn
       Temp[index].word=strdup(H[i].word);
-      Temp[index].tf=H[i].tf;
+      Temp[index].tfidf=H[i].tfidf;
     }
   }
 
@@ -445,7 +445,7 @@ WHash* WHashTF(WHash* H ){
 	int count=WHashCount(H);	//Apothikevi to sinolo olwn twn leksewn ths cameras
 	for(int i=0 ; i<H->size ; i++){
 		if(H[i].word!=NULL){	//Gia kathe bucket pou periexei mia leksh
-			H[i].tf=(H[i].tf)/count;	//Ipologizw to tf gia thn antistih leksh
+			H[i].tfidf=(H[i].tfidf)/count;	//Ipologizw to tf gia thn antistih leksh
 		}
 	}
 	return H;
@@ -466,7 +466,7 @@ int WHashCount(WHash* H){	//Ipologizei to sinoliko athrisma twn leksewn mias cam
 	int count=0;
 	for(int i=0 ; i<H->size ; i++){
 		if(H[i].word!=NULL){
-			count+=H[i].tf;
+			count+=H[i].tfidf;
 		}
 	}
 	return count;
@@ -480,7 +480,7 @@ int WHashFind(WHash* H,char* word){ //Epistrefei 1 an iparxei  leksh sto hash al
     if(!j){
       index=whashf(word,H->size);
     }else{
-      index=(index+j*j)%(H->size);
+      index=(index+j)%(H->size);
     }
     if(H[index].word==NULL){
       break;
@@ -495,19 +495,20 @@ int WHashFind(WHash* H,char* word){ //Epistrefei 1 an iparxei  leksh sto hash al
 }
 
 
-double GiveTF(WHash* H,char* camera){ //Epistrefei thn timh tou tf an iparxei h leksh allios 0
+
+double GiveTfIdf(WHash* H,char* camera){ //Epistrefei thn timh tou tf an iparxei h leksh allios 0
 	int j=0,index,exist=0;
 
   while(1){
     if(!j){
       index=whashf(camera,H->size);
     }else{
-      index=(index+j*j)%(H->size);
+      index=(index+j)%(H->size);
     }
     if(H[index].word==NULL){
       break;
     }else if(!strcmp(H[index].word,camera)){
-      return H[index].tf;
+      return H[index].tfidf;
       break;
     }
     j++;
@@ -530,7 +531,7 @@ void PrintWHash(WHash* H){
 	for(int i=0 ; i<H->size ; i++){
 		if(H[i].word!=NULL){
 			c++;
-			printf("	%dh:%s-%f\n",c,H[i].word,H[i].tf);
+			printf("	%dh:%s-%f\n",c,H[i].word,H[i].tfidf);
 		}
 	}
 }

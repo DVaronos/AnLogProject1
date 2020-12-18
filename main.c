@@ -92,7 +92,7 @@ int main( int argc, char *argv[] ){
        free(temp);
        temp=malloc(sizeof(char)*(strlen(word)+1));
        strcpy(temp,word);
-       Common=LHashInsert(Common,temp,0);
+       Common=LHashInsert(Common,temp);
 
  			charcount=0;
      }else{
@@ -153,8 +153,8 @@ int main( int argc, char *argv[] ){
    char* second;
    int match=0,tcount,z=0,a=0;
 
-   LHashIDF(LEK,jcount); //Ipologizo to IDF twn leksewn tou leksilogiou
-   LEK=NMostLHash(LEK,1000);  //Pairnw tis 1000 pio simantikes leksis
+   LHashTfIdf(LEK,jcount); //Ipologizo to IDF twn leksewn tou leksilogiou
+   LEK=NMostLHash(LEK,1000);  //Pairnw tis 1000 pio simantikes leksi
    printf("OLA TO LEK\n");
    H=HashVectorts(H,LEK); //Dimiourgw gia kathe kamera ena vector simfona me to leksilogio
 

@@ -50,7 +50,7 @@ void Print_Camera_Count_TList(TList* T);
 //--------------------Domh WHash-----------------------------\\
 
 typedef struct whash{
-  double tf;
+  double tfidf;
   char* word;
   int count;
   int size;
@@ -61,12 +61,13 @@ WHash* CreateWHash(int );
 WHash* InsertWHash(WHash* ,char* );
 WHash* Wrehash(WHash* );
 WHash* WHashTF(WHash* );
+WHash* MulTfIdf(WHash* ,char* ,double );
 
 int WHashCount(WHash* );
 int whashf(char* ,int );
 int WHashFind(WHash* ,char* );
 
-double GiveTF(WHash* ,char* );
+double GiveTfIdf(WHash* ,char* );
 
 void FreeWHash(WHash* );
 void PrintWHash(WHash* );
