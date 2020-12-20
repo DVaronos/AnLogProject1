@@ -166,8 +166,12 @@ int main( int argc, char *argv[] ){
 	 }
    fclose(dataw);
 
+
+   Input* testInput;
+
    tc-=1;
    sh=tc*0.6; //Ipologizw to 60% twn gramwn tou csv
+   int test_per = tc*0.2;
    if((dataw=fopen(wfile,"r"))==NULL){//ean den iparxei to arxeio pou dothike san input file vgenei error kai termatizei h efarmogh
      printf("ERROR:There no such wfile\n");
      free(dataw);
@@ -198,7 +202,13 @@ int main( int argc, char *argv[] ){
     free(first);
     free(second);
     ap++;
-    if(ap==sh) break;
+    if(ap==sh)
+    { 
+      printf("MPJKE GIA TO TEST INPUT\n");
+      testInput = MakeTestInputArray(dataw, H, test_per);
+      printf("VGHKE APO TO TEST INPUT\n");
+      break;
+    }
 	}
   fclose(dataw);
 
@@ -223,10 +233,26 @@ int main( int argc, char *argv[] ){
   fclose(scsv);
   fclose(dcsv);
 
-  Input* input = MakeInputArray("Same.csv", "Diffrend.csv", H);
-  PrintInput(input);
+  FILE* fptr = fopen("Same.csv", "r");
+  FILE* fptr2 = fopen("Diffrend.csv", "r");
+
+
+  Input* input = MakeInputArray(fptr, fptr2, H);
+  // PrintInput(input);
+  
   Model *model = Training(model, input);
-  PrintWeightArray(model);
+  // PrintWeightArray(model);
+
+  printf("OLA KALA ME TO TRAINING\n");
+
+  // PrintInput(testInput);
+
+  Testing(testInput, model);
+
+  printf("OLA KALA ME TO Testing\n");
+
+FreeInput(input);
+FreeInput(testInput);
 
   FreeModel(model);
 

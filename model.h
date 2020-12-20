@@ -6,9 +6,9 @@ typedef struct Model
 	int array_size;
 }Model;
 
-double* IninializeWeightArray(int vector_size);
+double* InitializeWeightArray(int vector_size);
 
-Model* IninializeModel(int vector_size);
+Model* InitializeModel(int vector_size);
 
 double F(double* vectror_array, Model* model);
 double P(double* vectror_array, Model* model);
@@ -35,7 +35,7 @@ typedef struct Input
 
 Input* InitializeInput();
 void PrintInput(Input* input);
-Input* MakeInputArray(char* filename1, char* filename2, Hash* H);
+Input* MakeInputArray(FILE*, FILE*, Hash* H);
 
 int FreeInput(Input* input);
 
@@ -43,5 +43,9 @@ double* Vector_Concat(double* vector1, double* vector2, int size);
 
 
 Model* Training(Model* model, Input* input);
+
+Input* MakeTestInputArray(FILE* fptr, Hash* H, int test_per);
+
+void Testing(Input* input, Model* model);
 
 double* GetCameraVector(char* camera_id, Hash* H);
