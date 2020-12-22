@@ -309,8 +309,8 @@ CList* ConectNList(NList* L,char* product,CList* clique){//Eisagei ena neo produ
 void PrintNList(NList* L){//Ektiponei thn NList
   while(L->Next!=NULL){
     L=L->Next;
-	//	printf("sthn %s\n",L->camera );
-		//PrintWHash(L->Spear);
+		printf("sthn %s\n",L->camera );
+	//	PrintHVector(L->vector);
 	}
 }
 
@@ -381,7 +381,7 @@ WHash* InsertWHash(WHash* H,char* word){	//Eisagei ena neo value stho WHash
     if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish whashf
       index=whashf(word,H->size);
     }else{
-      index=(index+j)%(H->size);
+      index=(index+j*j)%(H->size);
     }
     if(H[index].word==NULL){  //Ean einai adio to bucket tha isagoume se afto thn leksh
       break;
@@ -480,7 +480,7 @@ int WHashFind(WHash* H,char* word){ //Epistrefei 1 an iparxei  leksh sto hash al
     if(!j){
       index=whashf(word,H->size);
     }else{
-      index=(index+j)%(H->size);
+      index=(index+j*j)%(H->size);
     }
     if(H[index].word==NULL){
       break;
@@ -503,7 +503,7 @@ double GiveTfIdf(WHash* H,char* camera){ //Epistrefei thn timh tou tf an iparxei
     if(!j){
       index=whashf(camera,H->size);
     }else{
-      index=(index+j)%(H->size);
+      index=(index+j*j)%(H->size);
     }
     if(H[index].word==NULL){
       break;
@@ -534,4 +534,138 @@ void PrintWHash(WHash* H){
 			printf("	%dh:%s-%f\n",c,H[i].word,H[i].tfidf);
 		}
 	}
+}
+
+
+//--------------------Sinartiseis gia thn domh HVector-----------------------------\\
+
+int HVhash(int id,int size){
+  id^= (id << 13);
+  id^= (id >> 17);
+  id^= (id << 5);
+  return abs(id % size);
+
+}
+
+HVector* CreateHVector(int size){ //Dimiourgia enos neou WHash
+	HVector *H;
+	H=(HVector *)malloc(sizeof(HVector)*size);
+	H->size=size;
+	H->count=0;
+	for(int i=0 ; i< size ; i++){//gia kathe bucket tou HashTable arxikopiise ta dedomena
+		H[i].key=-1;
+		H[i].value=0;
+	}
+	return H;
+}
+
+
+HVector* InsertHVector(HVector* H,int key,double value){	//Eisagei ena neo value stho WHash
+	int j=0,index,exist=0;
+
+  while(1){ //Evresi tou bucket pou tha paei to neo product
+    if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish whashf
+      index=HVhash(key,H->size);
+    }else{
+      index=(index+j*j)%(H->size);
+    }
+    if(H[index].key==-1){  //Ean einai adio to bucket tha isagoume se afto thn leksh
+			H->count++;
+			H[index].key=key;
+			H[index].value=value;
+      break;
+    }
+    j++;
+  }
+  float n=(1.0*H->count)/H->size;
+  if(n>=0.8){ //Ean h plirotita ftasei to 80% kanei rehash
+      H=HVrehash(H);
+  }
+  return H;
+}
+
+HVector* HVrehash(HVector* H){
+  HVector*  Temp;
+  int i,index,j,exist;
+  Temp=(HVector* )malloc( (H->size*1.5) *  sizeof(WHash) ); //Dimiourgo ena neo HasTable me thn diplasia xoritikotita
+  Temp->size=H->size * 1.5;
+  Temp->count=0;
+  for(i=0 ; i< Temp->size ; i++){
+    Temp[i].key=-1;
+    Temp[i].value=0;
+  }
+  for(i=0 ; i< H->size ; i++){  //Pernaw ta dedomena tou paliou sto neo HasTable
+
+    if(H[i].key!=-1)  //Ean to arxiko Hash exei dedomena se afthn thn thesh
+      Temp=InsertHVector(Temp,H[i].key,H[i].value);
+  }
+
+  FreeHVector(H);
+  return Temp;
+}
+
+HVector* VectorConcat(HVector* F,HVector* S){
+	int size=(F->count)+(S->count)+((F->count)+(S->count))*0.3;
+	HVector* C=CreateHVector(size);
+
+	double fr,se;
+	fr=HVSumValues(F);
+	se=HVSumValues(S);
+	if(fr>se){
+		for(int i=0 ; i<F->size ; i++){
+			if(F[i].key!=-1) C=InsertHVector(C,F[i].key,F[i].value);
+		}
+		for(int i=0 ; i<S->size ; i++){
+			if(S[i].key!=-1) C=InsertHVector(C,(S[i].key)+F->count,S[i].value);
+		}
+	}else{
+		for(int i=0 ; i<S->size ; i++){
+			if(S[i].key!=-1) C=InsertHVector(C,S[i].key,S[i].value);
+		}
+		for(int i=0 ; i<S->size ; i++){
+			if(F[i].key!=-1) C=InsertHVector(C,(F[i].key)+S->count,F[i].value);
+		}
+	}
+	return C;
+}
+
+double HVSumValues(HVector* H){
+		double sum=0;
+		for(int i=0 ; i<H->size ; i++){
+			if(H[i].key!=-1) sum+=H[i].value;
+		}
+		return sum;
+}
+
+double HVGetValue(HVector* H,int key){
+	int j=0,index;
+
+  while(1){ //Evresi tou bucket pou tha paei to neo product
+    if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish whashf
+      index=HVhash(key,H->size);
+    }else{
+      index=(index+j*j)%(H->size);
+    }
+    if(H[index].key==key){  //Ean einai adio to bucket tha isagoume se afto thn leks
+			return H[index].value;
+      break;
+    }
+    j++;
+  }
+	return -1;
+}
+
+void PrintHVector(HVector* H){
+	int c=0;
+	for(int i=0; i<H->size ;i++){
+		if(H[i].key!=-1){
+			c++;
+			printf("	%d.%d-%f\n",c,H[i].key,H[i].value);
+		}
+		if(c==H->count) break;
+	}
+}
+
+void FreeHVector(HVector* H){
+	free(H);
 }

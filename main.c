@@ -5,8 +5,7 @@
 #include <sys/times.h>
 #include <dirent.h>
 #include <sys/times.h>
-// #include "hash.h"
-#include "model.h"
+#include "logistic.h"
 int main( int argc, char *argv[] ){
 
     double t1, t2,time,ticspersec;
@@ -22,6 +21,8 @@ int main( int argc, char *argv[] ){
    FILE *dataw;
    FILE *scsv;
    FILE *dcsv;
+   FILE *testing;
+   FILE* validation;
    char* wfile;
    char* dd;
    char* token=NULL;
@@ -102,7 +103,6 @@ int main( int argc, char *argv[] ){
  	}
 
   fclose(com);
-  printf("OLA KALA ME TO KOMON\n");
 
    while( new_directory=readdir(directory) ){ //Diavazw to periexomeno tou fakelou pou dothike(diladi tous ipofakelous)
 
@@ -149,9 +149,6 @@ int main( int argc, char *argv[] ){
         }
     }
    printf("OLA KALA ME TO DIAVASMA TWN JSON\n");
-   char* first;
-   char* second;
-   int match=0,tcount,z=0,a=0;
 
    LHashTfIdf(LEK,jcount); //Ipologizo to IDF twn leksewn tou leksilogiou
    LEK=NMostLHash(LEK,1000);  //Pairnw tis 1000 pio simantikes leksi
@@ -160,21 +157,41 @@ int main( int argc, char *argv[] ){
 
    FreeLHash(Common); //Apodesmevw to leksilogio kai to Common hash giati pleon den ta xriazome
    FreeLHash(LEK);
-   int tc=0,sh,ap=0;
+
+   char* first;
+   char* second;
+   int match=0,tcount,z=0,a=0;
+
    while (fgets(line,sizeof(line),dataw)){//Diavazei to csv file grami grami
-     tc++;
+     token=strtok(line,",");
+     token=strtok(NULL,",");
+     token=strtok(NULL,",");
+     match=atoi(token);
+     if(match){
+       a++; //arithmos twn thetikwn sisxetisewn
+     }else{
+       z++; //arithmos twn arnitikwn sisxetisewn
+     }
 	 }
    fclose(dataw);
+   int sa,ta,sz,tz,trz=0,tra=0,tez=0,tea=0,vz=0,va=0;
 
-
-   Input* testInput;
-
-   tc-=1;
-   sh=tc*0.6; //Ipologizw to 60% twn gramwn tou csv
-   int test_per = tc*0.2;
+   sa=a*0.6;  //to 60% twn thetikwn sisxetisewn tou dataw
+   ta=(a-sa)/2; ////to 20% twn thetikwn sisxetisewn tou dataw
+   sz=z*0.6; //to 60% twn arnitikwn sisxetisewn tou dataw
+   tz=(z-sz)/2; //to 20% twn arnitikwn sisxetisewn tou dataw
    if((dataw=fopen(wfile,"r"))==NULL){//ean den iparxei to arxeio pou dothike san input file vgenei error kai termatizei h efarmogh
      printf("ERROR:There no such wfile\n");
      free(dataw);
+     return 0;
+   }
+
+   if( (testing=fopen("Testing.csv","w"))==NULL){
+     perror("Fopen");
+     return 0;
+   }
+   if( (validation=fopen("Validation.csv","w"))==NULL){
+     perror("Fopen");
      return 0;
    }
 	 while (fgets(line,sizeof(line),dataw)){//Diavazei to csv file grami grami
@@ -198,24 +215,34 @@ int main( int argc, char *argv[] ){
       }
       token=strtok(NULL,",");
     }
-    HashConect(H,first,second,match);
+    if(match){ //Ean einai thetikh sisxetish
+      if(tra<sa){ //Ean den exw isagei to 60% twn thetikwn sisxetisewn sto trainig set
+        HashConect(H,first,second,match);
+        tra++;
+      }else if(tea<ta){ //Ean den exw isagei to 20% twn thetikwn sisxetisewn sto testing set
+        fprintf(testing,"%s,%s,%d\n",first,second,match );
+        tea++;
+      }else{ //To ipolipo 20% twn thetikwn sisxetisewn paei sto validation set
+        fprintf(validation,"%s,%s,%d\n",first,second,match );
+      }
+    }else{  //Ean einai arnitilh sisxetish
+      if(trz<sz){  //Ean den exw isagei to 60% twn arnitikwn sisxetisewn sto trainig set
+        HashConect(H,first,second,match);
+        trz++;
+      }else if(tez<tz){ //Ean den exw isagei to 20% twn arnitikwn sisxetisewn sto testing set
+        fprintf(testing,"%s,%s,%d\n",first,second,match );
+        tez++;
+      }else{  //To ipolipo 20% twn arnitikwn sisxetisewn paei sto validation set
+        fprintf(validation,"%s,%s,%d\n",first,second,match );
+      }
+    }
     free(first);
     free(second);
-    ap++;
-    if(ap==sh)
-    { 
-      printf("MPJKE GIA TO TEST INPUT\n");
-      testInput = MakeTestInputArray(dataw, H, test_per);
-      printf("VGHKE APO TO TEST INPUT\n");
-      break;
-    }
 	}
   fclose(dataw);
-
+  fclose(testing);
+  fclose(validation);
   printf("OLA KALA ME TIS KLIKES TON JSON\n");
-
-  // printf("VECTORS %f\n", H[1].Head->Next);
-
 
   scsv=fopen("Same.csv","w+"); //Dimiourgw ena neo csv arxio
   fprintf(scsv,"left_spec_id, right_spec_id\n");
@@ -223,46 +250,33 @@ int main( int argc, char *argv[] ){
   dcsv=fopen("Diffrend.csv","w+"); //Dimiourgw ena neo csv arxio
   fprintf(dcsv,"left_spec_id, right_spec_id\n");
 
-  TList* qlique_list = HashTransfer(H,scsv); //Pernaw ta teriasmata sto csv arxio
+  HashTransfer(H,scsv); //Pernaw ta teriasmata sto csv arxio
   HashDiff(H,dcsv);
-
-  // Print_Camera_Count_TList(qlique_list);
-
-  printf("OLA KALA ME TA NEA CSV FILES\n");
 
   fclose(scsv);
   fclose(dcsv);
 
-  FILE* fptr = fopen("Same.csv", "r");
-  FILE* fptr2 = fopen("Diffrend.csv", "r");
 
-
-  Input* input = MakeInputArray(fptr, fptr2, H);
-  // PrintInput(input);
-  
-  Model *model = Training(model, input);
-  // PrintWeightArray(model);
-
-  printf("OLA KALA ME TO TRAINING\n");
-
-  // PrintInput(testInput);
-
-  Testing(testInput, model);
-
+  printf("OLA KALA ME TA NEA CSV FILES\n");
+  Model model;
+  model=Training("Same.csv","Diffrend.csv", H);
+  /*  //Ftiaxnw ena Vari.txt kai apothikevo ta vari
+  FILE* fp=fopen("Vari.txt","w");
+	for(int i=0; i<2000; i++)
+		fprintf(fp,"%d.%f\n",i,model.weight_array[i]);
+	fclose(fp);*/
+  printf("OLA KALA ME TO Treining\n");
+  Testing("Testing.csv",model,H);
+  free(model.weight_array);
   printf("OLA KALA ME TO Testing\n");
 
-FreeInput(input);
-FreeInput(testInput);
-
-  FreeModel(model);
-
-  FreeTList(qlique_list);
   FreeHash(H);
   free(temp);
   free(wfile);
   free(dd);
   closedir(directory);
-
+  remove("Tsting.csv");
+  remove("Validation.csv");
   t2 = (double) times(&tb2);
   time=((t2 - t1) / ticspersec);  //O xrronos pou perase gia na vrethei o arithmos
   printf("Time was %f secs\n",time);

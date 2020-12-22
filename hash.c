@@ -143,14 +143,14 @@ void HashConect(Hash* H,char* first,char* second,int match){ /*Eisagei enan neo 
 }
 
 
-TList* HashTransfer(Hash* H,FILE* csvfile){//Metaferi ta proionta poy teriazoun se ena csv arxio
+void HashTransfer(Hash* H,FILE* csvfile){//Metaferi ta proionta poy teriazoun se ena csv arxio
   NList *L;
   TList* Transfered=CreateTList();
   for(int i=0 ; i<H->size ; i++){
     L=(NList*)H[i].Head;
     TransferNList(L,Transfered,csvfile);
   }
-  return Transfered;
+  FreeTList(Transfered);
 }
 
 
@@ -172,6 +172,7 @@ void HashPrint(Hash* H){//Ektiponei to HashTable
 		PrintNList(L);
 	}
 }
+/*
 
 void HashPrintP(Hash* H){//Ektiponei to HashTable
 	NList *L;
@@ -187,22 +188,26 @@ void HashPrintP(Hash* H){//Ektiponei to HashTable
 
 	}
 }
+*/
 
 Hash* HashVectorts(Hash* H,LHash* Lek){ //Dimiourgei ena vector gia kathe camera
 	NList *L;
-  double tf,c=0,p=0;
+  double tf,value;
 
 	for(int i=0 ; i<H->size ; i++){  //Gia kathe bucket tou Hash
 		L=(NList*)H[i].Head;
 		while(L->Next!=NULL){ //Gia kathe komvo ths NList(ara gia kathe kameras)
       L=L->Next;
-      L->vector=malloc(sizeof(double )*Lek->size);  //Dimiourgia enos noeu vector Lek->size thesewn
+      L->vector=malloc(sizeof(double)*Lek->size);
       for(int j=0 ; j<Lek->size ; j++){ //Gia kathe leksh tou Lek
         tf=GiveTfIdf(L->Spear,Lek[j].word);  //Pernw to tf ths lekshs an iparxei sthn camera alios to tf ginete 0
-        if(tf) c++;
-        if(Lek[j].tfcount==0) p++;
-        L->vector[j]=tf*Lek[j].tfcount;
+        //if(tf){
+          value=tf*Lek[j].tfcount;
+          L->vector[j]=value;
+        //}
       }
+      //printf("Sthn %s:\n",L->camera );
+      //PrintHVector(L->vector);
       // ============================
       L->vec_size = Lek->size;
       // ============================
@@ -428,6 +433,7 @@ LHash* NMostLHash(LHash* H,int n){ //Epistrefei ena Hash pou periexei mono tis n
     Temp[i].tfcount=0.0;
   }
   for(i=0 ; i< n ; i++){  //Pernaw ta dedomena tou paliou sto neo HasTable
+        //printf("%d %s\n",i,H[i].word );
         Temp[i].word=H[i].word;
         Temp[i].idf=H[i].idf;
         Temp[i].tfcount=H[i].tfcount;

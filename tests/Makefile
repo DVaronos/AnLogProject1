@@ -1,7 +1,7 @@
-test: test.o  ../hash.o ../list.o ../cameras.o
-	gcc -Wall -o test test.o ../hash.o ../list.o ../cameras.o
+test: test.o  ../hash.o ../list.o ../model.o
+	gcc -Wall -o test test.o ../hash.o ../list.o ../model.o -lm
 
-tect.o: test.c acutest.h ../hash.h
+tect.o: test.c acutest.h ../model.h
 	gcc -Wall -c test.c
 
 run:

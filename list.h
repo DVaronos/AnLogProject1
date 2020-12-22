@@ -73,7 +73,27 @@ void FreeWHash(WHash* );
 void PrintWHash(WHash* );
 
 
+//--------------------Domh HVector-----------------------------\\
 
+typedef struct hvector{
+  int key;
+  double value;
+  int count;
+  int size;
+}HVector;
+
+int HVhash(int ,int );
+HVector* CreateHVector(int );
+HVector* InsertHVector(HVector* ,int  ,double );
+HVector* HVrehash(HVector* );
+HVector* VectorConcat(HVector* ,HVector *);
+
+double HVGetValue(HVector* ,int );
+double HVSumValues(HVector* );
+
+
+void PrintHVector(HVector* );
+void FreeHVector(HVector* );
 //--------------------Domh NList-----------------------------\\
 
 
@@ -92,8 +112,6 @@ struct nlist{
 NList* CreateNList();
 
 CList* ConectNList(NList* ,char* ,CList* );
-
-int NListHmt(NList* ,char* );
 
 void TransferNList(NList* ,TList* ,FILE* );
 void InsertNList(NList* ,char* );

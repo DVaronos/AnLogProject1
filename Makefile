@@ -1,11 +1,11 @@
-sigmod : main.o model.o list.o hash.o
-	gcc -o sigmod main.o model.o list.o hash.o  -lm
+sigmod : main.o logistic.o list.o hash.o
+	gcc -o sigmod main.o logistic.o list.o hash.o  -lm
 
-main.o : main.c hash.h
+main.o : main.c logistic.h
 	gcc -c main.c
 
-model.o : model.c model.h
-	gcc -c model.c
+logistic.o : logistic.c logistic.h
+	gcc -c logistic.c
 
 hash.o : hash.c hash.h
 	gcc -c hash.c

@@ -123,8 +123,7 @@ void test_Hinsert(void){
     camera=malloc(sizeof(char)*(strlen(cam)+2));  //Dimiourgo ena string "site//7i" opou anti gia i o arithmos tou i se kathe epanalipsi
     strcpy(camera,cam);
     strncat(camera,&c,1);
-    Camera* ca=Camera_Init(camera);   //dimiourgo mia camera me onoma to periexomeno tou string camera
-    H=HashInsert(H,ca);
+    H=HashInsert(H,camera);
     free(camera);
   }
 
@@ -170,8 +169,7 @@ void test_Ninsert(void){
     camera=malloc(sizeof(char)*(strlen(cam)+2));  //Dimiourgo ena string "site//7i" opou anti gia i o arithmos tou i se kathe epanalipsi
     strcpy(camera,cam);
     strncat(camera,&c,1);
-    Camera* ca=Camera_Init(camera);   //dimiourgo mia camera me onoma to periexomeno tou string camera
-    InsertNList(N,ca);
+    InsertNList(N,camera);
     free(camera);
   }
 
@@ -189,130 +187,61 @@ void test_Ninsert(void){
 }
 
 
-//----------Tests for Camera----------\\
+//----------Tests for LHash----------\\
 
+void test_LHcreate(void){
+  printf("\n   //----------Tests for LHash----------\\\\ \n");
+  LHash* H=LHashCreate(20);
 
-void test_Value_Node_Init(void)
-{
-  printf("\n   //----------Tests for Camera----------\\\\ \n");
-	char value_str[] = "test_value";
-	value_node* vn =  Value_Node_Init(value_str);
+  TEST_ASSERT(H!=NULL);
 
-	TEST_ASSERT(vn != NULL);
-	TEST_ASSERT(strcmp(vn->value,value_str) == 0);
-
-	Delete_Value_Node(vn);
+  FreeLHash(H);
 }
 
-void test_Value_List_Init(void)
-{
-	value_list* vl = Value_List_Init();
+void test_LHinsert(void){
+  LHash* H=LHashCreate(20);
 
-	TEST_ASSERT(vl != NULL);
-
-	Delete_Value_List(vl);
+  int i;
+  char c;
+  char* camera;
+  char cam[10]="site//7";
+  for(i=0 ; i<5 ; i++){ //eisagw 5 domes camera sthn NList
+    c=i+'0';
+    camera=malloc(sizeof(char)*(strlen(cam)+2));  //Dimiourgo ena string "site//7i" opou anti gia i o arithmos tou i se kathe epanalipsi
+    strcpy(camera,cam);
+    strncat(camera,&c,1);
+    H=LHashInsert(H,camera);
+    free(camera);
+  }
+  i=0;
+  for(int j=0 ; j<H->size ; j++){
+    if(H[j].word!=NULL) i++;
+  }
+  TEST_ASSERT(i==5); //Tsekaro an exoun isagxthei oses evala
+  FreeLHash(H);
 }
 
-void test_Add_to_value_list(void)
-{
-	value_list* vl = Value_List_Init();
-	char value_str[] = "test_value";
-	value_node* vn =  Value_Node_Init(value_str);
+void test_LHFind(void){
+  LHash* H=LHashCreate(20);
 
-	Add_to_value_list(vl, vn);
-
-	// testing first add
-	TEST_ASSERT(vl->first == vn);
-	TEST_ASSERT(vl->last == vn);
-
-	value_node* vn_ptr = vl->first;
-
-	// testing multiple adds
-	for(int i=0; i<5; i++)
-	{
-		value_node* vn =  Value_Node_Init(value_str);
-		Add_to_value_list(vl, vn);
-		// this last node is not added at the start of the list
-		TEST_ASSERT(vl->first != vn);
-		// its added at the end
-		TEST_ASSERT(vl->last == vn);
-		// its connected to the previous last node of the list
-		TEST_ASSERT(vn_ptr->next == vn);
-		vn_ptr = vn_ptr->next;
-	}
-
-	Delete_Value_List(vl);
+  int i;
+  char c;
+  char* camera;
+  char cam[10]="site//7";
+  for(i=0 ; i<5 ; i++){ //eisagw 5 domes camera sthn NList
+    c=i+'0';
+    camera=malloc(sizeof(char)*(strlen(cam)+2));  //Dimiourgo ena string "site//7i" opou anti gia i o arithmos tou i se kathe epanalipsi
+    strcpy(camera,cam);
+    strncat(camera,&c,1);
+    H=LHashInsert(H,camera);
+    free(camera);
+  }
+  i=LHashFind(H,"site//74");
+  TEST_ASSERT(i==1); //Tsekaro an exoun isagxthei oses evala
+  FreeLHash(H);
 }
 
-void test_Spec_node_Init(void)
-{
-	char* key = "test_key";
-	value_list* vl = Value_List_Init();
-	Spec_node* sn = Spec_node_Init(key, vl);
 
-	TEST_ASSERT(sn != NULL);
-	TEST_ASSERT(strcmp(sn->key, key) == 0);
-	TEST_ASSERT(sn->valuelist == vl);
-	TEST_ASSERT(sn->next == NULL);
-
-	Delete_Spec_node(sn);
-}
-
-void test_Spec_List_Init(void)
-{
-	Spec_List* sl = Spec_List_Init();
-	TEST_ASSERT(sl != NULL);
-
-	Delete_Spec_List(sl);
-}
-
-void test_Specs_Add_Node(void)
-{
-	Spec_List* sl = Spec_List_Init();
-
-	char* key = "test_key";
-	value_list* vl = Value_List_Init();
-	Spec_node* sn = Spec_node_Init(key, vl);
-
-	Specs_Add_Node(sl, sn);
-
-	// testing first add
-	TEST_ASSERT(sl->first == sn);
-	TEST_ASSERT(sl->last == sn);
-
-	Spec_node* sn_ptr = sl->first;
-
-	// testing multiple adds
-	for(int i=0; i<5; i++)
-	{
-		value_list* vl = Value_List_Init();
-		Spec_node* sn = Spec_node_Init(key, vl);
-
-		Specs_Add_Node(sl, sn);
-
-		// this last node is not added at the start of the list
-		TEST_ASSERT(sl->first != sn);
-		// its added at the end
-		TEST_ASSERT(sl->last == sn);
-		// its connected to the previous last node of the list
-		TEST_ASSERT(sn_ptr->next == sn);
-		sn_ptr = sn_ptr->next;
-	}
-
-	Delete_Spec_List(sl);
-}
-
-void test_Camera_Init(void)
-{
-	char* name = "test name";
-	Camera* c = Camera_Init(name);
-
-	TEST_ASSERT(c != NULL);
-	TEST_ASSERT(strcmp(c->id, name) == 0);
-	TEST_ASSERT(c->spec_List != NULL);
-
-	Delete_Camera(c);
-}
 
 
 TEST_LIST={
@@ -325,12 +254,8 @@ TEST_LIST={
   {"InsertNList",test_Ninsert},
   {"HashCreate",test_Hcreate},
   {"HashInsert",test_Hinsert},
-  {"Value_Node_Init", test_Value_Node_Init},
-	{"Value_List_Init", test_Value_List_Init},
-	{"Add_to_value_list", test_Add_to_value_list},
-	{"Spec_node_Init", test_Spec_node_Init},
-	{"Spec_List_Init", test_Spec_List_Init},
-	{"Specs_Add_Node", test_Specs_Add_Node},
-	{"Camera_Init", test_Camera_Init},
+  {"LHashCreate",test_LHcreate},
+  {"LHashInsert",test_LHinsert},
+  {"LHashFind",test_LHFind},
   {NULL,NULL}
 };
