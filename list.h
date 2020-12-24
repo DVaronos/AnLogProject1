@@ -86,7 +86,6 @@ int HVhash(int ,int );
 HVector* CreateHVector(int );
 HVector* InsertHVector(HVector* ,int  ,double );
 HVector* HVrehash(HVector* );
-HVector* VectorConcat(HVector* ,HVector *);
 
 double HVGetValue(HVector* ,int );
 double HVSumValues(HVector* );
@@ -101,7 +100,7 @@ struct nlist{
   char* camera;
   WHash* Spear;
   CList* clique;
-  double* vector;
+  HVector* vector;
   struct nlist* Next;
   // ============================
   int vec_size;

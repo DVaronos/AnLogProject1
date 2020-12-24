@@ -6,9 +6,10 @@
 #include <dirent.h>
 #include <sys/times.h>
 #include "logistic.h"
+
 int main( int argc, char *argv[] ){
 
-    double t1, t2,time,ticspersec;
+    double t1, t2,time,ticspersec,t3;
     struct tms tb1, tb2;
 
     ticspersec = (double) sysconf(_SC_CLK_TCK);
@@ -29,16 +30,19 @@ int main( int argc, char *argv[] ){
    char line[300];
    int inputexist=0,dexist=0,files=0,jcount=0;
    char c;
+   int oe=0;
 
    for(int i=1 ; i<argc ; i++){//Elegxos gia to an iparxei arxio eisodou
      if(strcmp(argv[i],"-w")==0){//Efoson iparxi inputfile apothikefsi tou onomatos tou
        wfile=malloc(sizeof(char)*(strlen(argv[i+1])+1));
        strcpy(wfile,argv[i+1]);
        inputexist=1;
-     }if(strcmp(argv[i],"-d")==0){//Efoson iparxi inputfile apothikefsi tou onomatos tou
+     }else if(strcmp(argv[i],"-d")==0){//Efoson iparxi inputfile apothikefsi tou onomatos tou
        dd=malloc(sizeof(char)*(strlen(argv[i+1])+1));
        strcpy(dd,argv[i+1]);
        dexist=1;
+     } else if(strcmp(argv[i],"-o")==0){//Efoson iparxi inputfile apothikefsi tou onomatos tou
+       oe=1;
      }
    }
 
@@ -158,6 +162,10 @@ int main( int argc, char *argv[] ){
    FreeLHash(Common); //Apodesmevw to leksilogio kai to Common hash giati pleon den ta xriazome
    FreeLHash(LEK);
 
+
+
+
+
    char* first;
    char* second;
    int match=0,tcount,z=0,a=0;
@@ -260,22 +268,35 @@ int main( int argc, char *argv[] ){
   printf("OLA KALA ME TA NEA CSV FILES\n");
   Model model;
   model=Training("Same.csv","Diffrend.csv", H);
+
+
   /*  //Ftiaxnw ena Vari.txt kai apothikevo ta vari
   FILE* fp=fopen("Vari.txt","w");
-	for(int i=0; i<2000; i++)
+	for(int i=0; i<model.array_size; i++)
 		fprintf(fp,"%d.%f\n",i,model.weight_array[i]);
-	fclose(fp);*/
+	fclose(fp);
+  */
   printf("OLA KALA ME TO Treining\n");
   Testing("Testing.csv",model,H);
-  free(model.weight_array);
   printf("OLA KALA ME TO Testing\n");
+
+  if(oe){
+  printf("paw gia ola gia ola\n");
+    t2 = (double) times(&tb2);
+    OlaGiaOla(H,model);
+    t3=t2;
+    t2 = (double) times(&tb2);
+    time=((t2 - t3) / ticspersec);  //O xrronos pou perase gia na vrethei o arithmos
+    printf("Ola gia ola was %f secs\n",time);
+  }
 
   FreeHash(H);
   free(temp);
+  free(model.weight_array);
   free(wfile);
   free(dd);
   closedir(directory);
-  remove("Tsting.csv");
+  remove("Testing.csv");
   remove("Validation.csv");
   t2 = (double) times(&tb2);
   time=((t2 - t1) / ticspersec);  //O xrronos pou perase gia na vrethei o arithmos

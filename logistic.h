@@ -8,11 +8,13 @@ typedef struct Model
 }Model;
 
 
-double* GetCameraVector(char* camera_id, Hash* H);
-double* Vector_Concat(double* vector1, double* vector2, int size);
+HVector* GetCameraVector(char* , Hash* );
+HVector* VectorConcat(HVector* ,HVector* ,int );
 
 Model Training(char* ,char* ,Hash* );
-double Fx(Model ,double* ,int );
-double Predict(Model ,double* ,int );
+double Fx(Model ,HVector* );
+double Predict(Model ,HVector* );
+double Norm(Model );
 
+void OlaGiaOla(Hash* ,Model );
 void Testing(char* ,Model ,Hash* );

@@ -198,13 +198,13 @@ Hash* HashVectorts(Hash* H,LHash* Lek){ //Dimiourgei ena vector gia kathe camera
 		L=(NList*)H[i].Head;
 		while(L->Next!=NULL){ //Gia kathe komvo ths NList(ara gia kathe kameras)
       L=L->Next;
-      L->vector=malloc(sizeof(double)*Lek->size);
+      L->vector=CreateHVector(200);
       for(int j=0 ; j<Lek->size ; j++){ //Gia kathe leksh tou Lek
         tf=GiveTfIdf(L->Spear,Lek[j].word);  //Pernw to tf ths lekshs an iparxei sthn camera alios to tf ginete 0
-        //if(tf){
+        if(tf){
           value=tf*Lek[j].tfcount;
-          L->vector[j]=value;
-        //}
+          L->vector=InsertHVector(L->vector,j,value);
+        }
       }
       //printf("Sthn %s:\n",L->camera );
       //PrintHVector(L->vector);

@@ -307,11 +307,13 @@ CList* ConectNList(NList* L,char* product,CList* clique){//Eisagei ena neo produ
 
 
 void PrintNList(NList* L){//Ektiponei thn NList
+	printf("[");
   while(L->Next!=NULL){
     L=L->Next;
-		printf("sthn %s\n",L->camera );
+		printf(" %s ",L->camera );
 	//	PrintHVector(L->vector);
 	}
+	printf("]\n");
 }
 
 void TransferNList(NList* L,TList* Transfered,FILE* csvfile){	//Metaferi ta dedomena  ths NList
@@ -345,7 +347,7 @@ void FreeNList(NList* L,TList* Deleted){//Apodesmevi thn NList
     T=L->Next;
     L->Next=T->Next;
 		if(T->Spear!=NULL) FreeWHash(T->Spear);
-		if(T->vector!=NULL)free(T->vector);
+		if(T->vector!=NULL)FreeHVector(T->vector);
     if(T->camera!=NULL) free(T->camera);
 		if(T->clique!=NULL){
 			if(FindTList(Deleted,T->clique)){//Ean h klika pou dixnei o komvos L den exei ektipothei
@@ -604,30 +606,6 @@ HVector* HVrehash(HVector* H){
   return Temp;
 }
 
-HVector* VectorConcat(HVector* F,HVector* S){
-	int size=(F->count)+(S->count)+((F->count)+(S->count))*0.3;
-	HVector* C=CreateHVector(size);
-
-	double fr,se;
-	fr=HVSumValues(F);
-	se=HVSumValues(S);
-	if(fr>se){
-		for(int i=0 ; i<F->size ; i++){
-			if(F[i].key!=-1) C=InsertHVector(C,F[i].key,F[i].value);
-		}
-		for(int i=0 ; i<S->size ; i++){
-			if(S[i].key!=-1) C=InsertHVector(C,(S[i].key)+F->count,S[i].value);
-		}
-	}else{
-		for(int i=0 ; i<S->size ; i++){
-			if(S[i].key!=-1) C=InsertHVector(C,S[i].key,S[i].value);
-		}
-		for(int i=0 ; i<S->size ; i++){
-			if(F[i].key!=-1) C=InsertHVector(C,(F[i].key)+S->count,F[i].value);
-		}
-	}
-	return C;
-}
 
 double HVSumValues(HVector* H){
 		double sum=0;
@@ -657,13 +635,15 @@ double HVGetValue(HVector* H,int key){
 
 void PrintHVector(HVector* H){
 	int c=0;
+	printf("[");
 	for(int i=0; i<H->size ;i++){
 		if(H[i].key!=-1){
 			c++;
-			printf("	%d.%d-%f\n",c,H[i].key,H[i].value);
+			printf("(%d-%f),",H[i].key,H[i].value);
 		}
 		if(c==H->count) break;
 	}
+	printf("]\n");
 }
 
 void FreeHVector(HVector* H){
