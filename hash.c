@@ -172,23 +172,7 @@ void HashPrint(Hash* H){//Ektiponei to HashTable
 		PrintNList(L);
 	}
 }
-/*
 
-void HashPrintP(Hash* H){//Ektiponei to HashTable
-	NList *L;
-  int c;
-	for(int i=0 ; i<H->size ; i++){
-		L=(NList*)H[i].Head;
-		while(L->Next!=NULL){
-      L=L->Next;
-      for(int i=0 ; i<1000 ; i++){
-        if(L->vector[i]) c++;
-      }
-    }
-
-	}
-}
-*/
 
 Hash* HashVectorts(Hash* H,LHash* Lek){ //Dimiourgei ena vector gia kathe camera
 	NList *L;
@@ -201,16 +185,12 @@ Hash* HashVectorts(Hash* H,LHash* Lek){ //Dimiourgei ena vector gia kathe camera
       L->vector=CreateHVector(200);
       for(int j=0 ; j<Lek->size ; j++){ //Gia kathe leksh tou Lek
         tf=GiveTfIdf(L->Spear,Lek[j].word);  //Pernw to tf ths lekshs an iparxei sthn camera alios to tf ginete 0
-        if(tf){
-          value=tf*Lek[j].tfcount;
-          L->vector=InsertHVector(L->vector,j,value);
+        if(tf){ //ean iparxi h leksh sthn camera
+          value=tf*Lek[j].tfcount;  //h timh ginete tf*idf
+          L->vector=InsertHVector(L->vector,j,value); //isagogi sto vector
         }
       }
-      //printf("Sthn %s:\n",L->camera );
-      //PrintHVector(L->vector);
-      // ============================
       L->vec_size = Lek->size;
-      // ============================
       FreeWHash(L->Spear);  //Apodemsevw to WHash ths cameras afou pleon den to xriazome
       L->Spear=NULL;
     }
@@ -337,7 +317,6 @@ LHash* Lrehash(LHash* H){
   Temp=(LHash* )malloc( (H->size*2) *  sizeof(LHash) ); //Dimiourgo ena neo HasTable me thn diplasia xoritikotita
   Temp->size=H->size * 2;
   Temp->count=H->count;
-  //Temp->height=H->height;
   for(i=0 ; i< Temp->size ; i++){
     Temp[i].word=NULL;
     Temp[i].idf=0.0;
@@ -433,7 +412,6 @@ LHash* NMostLHash(LHash* H,int n){ //Epistrefei ena Hash pou periexei mono tis n
     Temp[i].tfcount=0.0;
   }
   for(i=0 ; i< n ; i++){  //Pernaw ta dedomena tou paliou sto neo HasTable
-        //printf("%d %s\n",i,H[i].word );
         Temp[i].word=H[i].word;
         Temp[i].idf=H[i].idf;
         Temp[i].tfcount=H[i].tfcount;

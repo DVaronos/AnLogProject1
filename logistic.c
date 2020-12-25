@@ -34,20 +34,16 @@ HVector* GetCameraVector(char* camera_id, Hash* H)
 }
 
 HVector* VectorConcat(HVector* F,HVector* S,int dif){
-	//printf("pame\n");
 	int size=(F->count)+(S->count),c=0;
 	size=size+size*0.3;
-	//printf("exw size %d\n",size);
 	HVector* C=CreateHVector(size);
 
 	int fr,se;
 	fr=HVSumValues(F);
-	//printf("exw fr %f\n",fr);
 	se=HVSumValues(S);
-//	printf("exw se %f\n",se);
-	if(fr>se){
+	if(fr>se){//Eelgxo pio ap ta dio vectors tha mpei proto
 		c=0;
-		for(int i=0 ; i<F->size ; i++){
+		for(int i=0 ; i<F->size ; i++){	//Isago tis leksis tou protou vector
 			if(F[i].key!=-1){
 				c++;
 				C=InsertHVector(C,F[i].key,F[i].value);
@@ -55,13 +51,14 @@ HVector* VectorConcat(HVector* F,HVector* S,int dif){
 			if(c==F->count) break;
 		}
 		c=0;
-		for(int i=0 ; i<S->size ; i++){
+		for(int i=0 ; i<S->size ; i++){	//Isago tis leksis tou defterou vectour me afksimeno to key kata dif
 			if(S[i].key!=-1){
 				c++;
 				C=InsertHVector(C,(S[i].key)+dif,S[i].value);
 			}
 			if(c==S->count) break;
 		}
+
 	}else{
 		c=0;
 		for(int i=0 ; i<S->size ; i++){
@@ -80,7 +77,6 @@ HVector* VectorConcat(HVector* F,HVector* S,int dif){
 			if(c==F->count) break;
 		}
 	}
-//	printf("ok h hvector\n" );
 	return C;
 }
 
@@ -242,7 +238,7 @@ double Predict(Model model,HVector* con){
 }
 
 
-void OlaGiaOla(Hash* H,Model model){
+void TestAllData(Hash* H,Model model){
 	NList* E;
 	NList* M;
 	HVector* F;
@@ -252,42 +248,42 @@ void OlaGiaOla(Hash* H,Model model){
 	NList* T1;
 	NList* T2;
 	int ca=0;
-	for(int i=0 ; i<H->size ; i++){
+	for(int i=0 ; i<H->size ; i++){	//Gia kathe bucket-list tou Hash
 		E=(NList*)H[i].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
 		T1=E;
-		while(T1->Next!=NULL){
-			T1=T1->Next;
-			if(T1->clique==NULL){
-				F=GetCameraVector(T1->camera,H);
+		while(T1->Next!=NULL){	//Arxika elegxw ta dedonena ths Listas metaksi tous
+			T1=T1->Next;	//Gia kathe camera ths listas
+			if(T1->clique==NULL){	//Ean h kamera den anoikei se kapia klika
+				F=GetCameraVector(T1->camera,H);	//Apothikevo to vector ths cameras
 				T2=T1;
-				while(T2->Next!=NULL){
+				while(T2->Next!=NULL){	//Gia olou tous epomenous komvous ths listas
 					T2=T2->Next;
-					if(T2->clique==NULL && strcmp(T1->camera,T2->camera)){
+					if(T2->clique==NULL){	//Ean h camera den anoikei se kapia klika kai den einai h idia me thn prohgoumeni
 						ca++;
-						S=GetCameraVector(T2->camera,H);
-						Con=VectorConcat(F,S,model.array_size/2);
-						p=Predict(model,Con);
+						S=GetCameraVector(T2->camera,H);	//Apothikevo to vector ths
+						Con=VectorConcat(F,S,model.array_size/2);	//Vrisko to concatenation
+						p=Predict(model,Con);	//Vrisko thn provlepsh
 						if(p<0.002 || p>0.998) printf("%d,%s me %s exoun %f\n",ca,T1->camera,T2->camera,p);
 						FreeHVector(Con);
 					}
 				}
 			}
 		}
-		for(int j=i+1 ; j<H->size ; j++){
+		for(int j=i+1 ; j<H->size ; j++){//Gia kathe epomenh bucket list
 			E=(NList*)H[i].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
 
-			while(E->Next!=NULL){
+			while(E->Next!=NULL){ //Gia kathe komvo ths listas
 					E=E->Next;
-					if(E->clique==NULL){
-						M=(NList*)H[j].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
-						F=GetCameraVector(E->camera,H);
-						while(M->Next!=NULL){
+					if(E->clique==NULL){	//Ean h camera den anoikei se kapia klika
+						M=(NList*)H[j].Head;//pernw thn lista pou vriskete sto j bucket tou HashTable
+						F=GetCameraVector(E->camera,H);	//Vrisko to vector ths cameras
+						while(M->Next!=NULL){	//Gia kathe komvo ths defterhs listas
 							M=M->Next;
-							if(M->clique==NULL && strcmp(E->camera,M->camera) ){
+							if(M->clique==NULL){ //Ean h camera den anoikei se kapia klika kai den einai h idia me thn prohgoumeni
 								ca++;
-						    S=GetCameraVector(M->camera,H);
-						    Con=VectorConcat(F,S,model.array_size/2);
-								p=Predict(model,Con);
+						    S=GetCameraVector(M->camera,H); //Apothikevo to vector ths
+						    Con=VectorConcat(F,S,model.array_size/2); //Vrisko to concatenation
+								p=Predict(model,Con); //Vrisko thn provlepsh
 								if(p<0.002 || p>0.998) printf("%d,%s me %s exoun %f\n",ca,E->camera,M->camera,p);
 								FreeHVector(Con);
 							}
@@ -299,7 +295,7 @@ void OlaGiaOla(Hash* H,Model model){
 	printf("Htan sinolo %d\n",ca);
 }
 
-double Norm(Model model){
+double Norm(Model model){	//Ipologismos ths normas tou vector  tou modleou
 	int sum=0;
 	for(int i=0 ; i<model.array_size ; i++){
 		sum+=model.weight_array[i]*model.weight_array[i];

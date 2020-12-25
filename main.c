@@ -41,7 +41,7 @@ int main( int argc, char *argv[] ){
        dd=malloc(sizeof(char)*(strlen(argv[i+1])+1));
        strcpy(dd,argv[i+1]);
        dexist=1;
-     } else if(strcmp(argv[i],"-o")==0){//Efoson iparxi inputfile apothikefsi tou onomatos tou
+     } else if(strcmp(argv[i],"-o")==0){//Elegxos gia to an iparxei epilogi na dokimastoun gia to modelo ola ta dedomena tou datasetX metaxi tous
        oe=1;
      }
    }
@@ -76,20 +76,20 @@ int main( int argc, char *argv[] ){
    char* newdir;
    char* newid;
    char word[15];
-   Hash* H=HashCreate(1000);
-   LHash* LEK=LHashCreate(1000);
-   LHash* Common=LHashCreate(200);
+   Hash* H=HashCreate(1000);  //Domh hash gia apotikefsh tou dataset x
+   LHash* LEK=LHashCreate(1000);  //Domh LHash gia to leksilogio
+   LHash* Common=LHashCreate(200);  //Domh LHash gia tis koines lekeis
    char* temp=strdup("start");
    int charcount=0;
    FILE *com;
    WHash* S;
 
-   if( (com=fopen("common.txt","r"))==NULL){
+   if( (com=fopen("common.txt","r"))==NULL){//Anigma tou common.tx pou periexei tis koines leksis
      perror("Fopen");
      return 0;
    }
 
-   while((c = fgetc(com))!= EOF){//Apothikevo tis common leksis se ena hash
+   while((c = fgetc(com))!= EOF){//Apothikevo tis common leksis se ena Lhash
  		if(c ==',' || c== '\n'){
 
        word[charcount]='\0';
@@ -140,7 +140,7 @@ int main( int argc, char *argv[] ){
 
                       H=HashInsert(H,newid); //Apothikevo to id ths cameras sthn domh
                       LEK=Readjson(newfile,LEK,Common,&S); //Diavazo to json file kai apothikevo ta dedomena sto leksilogio kai se ena WHash
-                      jcount++;
+                      //jcount++;
                       H=HashReplaceSpear(H,newid,S);  //Eisago to whash sthn atnisthxh thesh sthn domh
                       free(newfile);
                       free(newid);
@@ -152,20 +152,14 @@ int main( int argc, char *argv[] ){
             free(newdir);
         }
     }
-   printf("OLA KALA ME TO DIAVASMA TWN JSON\n");
+   printf("Just finished the storage of datasetX\n");
 
-   LHashTfIdf(LEK,jcount); //Ipologizo to IDF twn leksewn tou leksilogiou
+   LHashTfIdf(LEK,H->count); //Ipologizo to IDF twn leksewn tou leksilogiou
    LEK=NMostLHash(LEK,1000);  //Pairnw tis 1000 pio simantikes leksi
-   printf("OLA TO LEK\n");
    H=HashVectorts(H,LEK); //Dimiourgw gia kathe kamera ena vector simfona me to leksilogio
-
    FreeLHash(Common); //Apodesmevw to leksilogio kai to Common hash giati pleon den ta xriazome
    FreeLHash(LEK);
-
-
-
-
-
+   printf("Just finished the creation of the vectors\n");
    char* first;
    char* second;
    int match=0,tcount,z=0,a=0;
@@ -223,6 +217,7 @@ int main( int argc, char *argv[] ){
       }
       token=strtok(NULL,",");
     }
+
     if(match){ //Ean einai thetikh sisxetish
       if(tra<sa){ //Ean den exw isagei to 60% twn thetikwn sisxetisewn sto trainig set
         HashConect(H,first,second,match);
@@ -250,7 +245,7 @@ int main( int argc, char *argv[] ){
   fclose(dataw);
   fclose(testing);
   fclose(validation);
-  printf("OLA KALA ME TIS KLIKES TON JSON\n");
+  printf("Just finished the reading of the datasetW\n");
 
   scsv=fopen("Same.csv","w+"); //Dimiourgw ena neo csv arxio
   fprintf(scsv,"left_spec_id, right_spec_id\n");
@@ -263,33 +258,24 @@ int main( int argc, char *argv[] ){
 
   fclose(scsv);
   fclose(dcsv);
+  printf("Just finished the creation of the Sme and Diffrend csv files\n");
 
-
-  printf("OLA KALA ME TA NEA CSV FILES\n");
   Model model;
   model=Training("Same.csv","Diffrend.csv", H);
+  printf("Just finished whith the treining of the model\n");
 
-
-  /*  //Ftiaxnw ena Vari.txt kai apothikevo ta vari
-  FILE* fp=fopen("Vari.txt","w");
-	for(int i=0; i<model.array_size; i++)
-		fprintf(fp,"%d.%f\n",i,model.weight_array[i]);
-	fclose(fp);
-  */
-  printf("OLA KALA ME TO Treining\n");
   Testing("Testing.csv",model,H);
-  printf("OLA KALA ME TO Testing\n");
 
-  if(oe){
-  printf("paw gia ola gia ola\n");
+  if(oe){//Ean iparxi epilogh tou elegxou olwn twn dedomenwn tou datasetX metaksi tous
     t2 = (double) times(&tb2);
-    OlaGiaOla(H,model);
+    TestAllData(H,model);
     t3=t2;
     t2 = (double) times(&tb2);
     time=((t2 - t3) / ticspersec);  //O xrronos pou perase gia na vrethei o arithmos
     printf("Ola gia ola was %f secs\n",time);
   }
 
+  //apodesmefsh twn domwn
   FreeHash(H);
   free(temp);
   free(model.weight_array);
@@ -298,6 +284,7 @@ int main( int argc, char *argv[] ){
   closedir(directory);
   remove("Testing.csv");
   remove("Validation.csv");
+
   t2 = (double) times(&tb2);
   time=((t2 - t1) / ticspersec);  //O xrronos pou perase gia na vrethei o arithmos
   printf("Time was %f secs\n",time);

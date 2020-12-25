@@ -16,5 +16,5 @@ double Fx(Model ,HVector* );
 double Predict(Model ,HVector* );
 double Norm(Model );
 
-void OlaGiaOla(Hash* ,Model );
+void TestAllData(Hash* ,Model );
 void Testing(char* ,Model ,Hash* );

@@ -12,9 +12,7 @@ CList* CreateCList(){ //Dimiourgei mia nea CList
 	L->Next=NULL;
   	L->name=NULL;
 	L->Diffrend=NULL;
-	//--------------------------------------------------
 	L->camera_count = 0;
-	//--------------------------------------------------
 	return L;
 }
 
@@ -27,9 +25,7 @@ void InsertCList(CList* L,char* product,NList* Head){//Eisagei ena neo product s
 	N->Head=Head;
   N->Next=L->Next;
   L->Next=N;
-  //--------------------------------------------------
   L->camera_count++;
-  //--------------------------------------------------
 }
 
 
@@ -205,7 +201,6 @@ int CountTList(TList* T){	//Ipologixei to posous komvous exei h TList
 }
 
 
-// ===============================================================================
 void Print_Camera_Count_TList(TList* T)
 {
 	int i = 1;
@@ -217,7 +212,6 @@ void Print_Camera_Count_TList(TList* T)
 		i++;
 	}
 }
-// ===============================================================================
 
 
 void FreeTList(TList* L){//Apodesmevi thn TList
@@ -311,7 +305,6 @@ void PrintNList(NList* L){//Ektiponei thn NList
   while(L->Next!=NULL){
     L=L->Next;
 		printf(" %s ",L->camera );
-	//	PrintHVector(L->vector);
 	}
 	printf("]\n");
 }
@@ -328,6 +321,7 @@ void TransferNList(NList* L,TList* Transfered,FILE* csvfile){	//Metaferi ta dedo
 		}
 }
 
+
 void DiffNList(NList* L,TList* Transfered,FILE* csvfile){	//Metaferi ta dedomena  ths NList
   while(L->Next!=NULL){
     L=L->Next;
@@ -336,9 +330,8 @@ void DiffNList(NList* L,TList* Transfered,FILE* csvfile){	//Metaferi ta dedomena
 						DiffCList(L->clique,Transfered,csvfile);
 						InsertTList(Transfered,L->clique);//Vale thn klika pou dixnei o komvos L se aftes pou exoun metaferthei
 				}
-  		}
-
-		}
+  	}
+	}
 }
 
 void FreeNList(NList* L,TList* Deleted){//Apodesmevi thn NList
@@ -437,7 +430,6 @@ WHash* Wrehash(WHash* H){
       Temp[index].tfidf=H[i].tfidf;
     }
   }
-
   FreeWHash(H);
   return Temp;
 }

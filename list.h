@@ -10,9 +10,7 @@ typedef struct clist{
   NList* Head;
   TList* Diffrend;
   struct clist* Next;
-  //-------------------------
-  int camera_count;     //-->metraei poses kameres einai mesa sthn qlique
-  //-------------------------
+  int camera_count;
 }CList;
 
 
@@ -20,7 +18,6 @@ CList* CreateCList();
 CList* AppendCList(CList* ,CList* );
 
 void InsertCList(CList* ,char* ,NList* );
-void PrintCList(CList* ,FILE* );
 void FreeCList(CList* );
 void Diff(CList* ,CList* );
 void DiffCList(CList*,TList* ,FILE* );
@@ -44,7 +41,6 @@ void RemoveTList(TList* ,CList* );
 
 int CountTList(TList* );
 int FindTList(TList* ,CList*);
-// ===========================================
 void Print_Camera_Count_TList(TList* T);
 
 //--------------------Domh WHash-----------------------------\\
@@ -102,9 +98,7 @@ struct nlist{
   CList* clique;
   HVector* vector;
   struct nlist* Next;
-  // ============================
   int vec_size;
-  // ============================
 };
 
 
