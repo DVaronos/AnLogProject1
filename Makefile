@@ -24,6 +24,9 @@ test:
 test-run:
 	$(MAKE) -C tests run
 
+test-vrun:
+	$(MAKE) -C tests vrun
+
 test-clean:
 	$(MAKE) -C tests	clean
 

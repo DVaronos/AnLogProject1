@@ -5,7 +5,6 @@
 //----------Tests for TList----------\\
 
 void test_Tcreate(void){
-  printf("\n   //----------Tests for TList----------\\\\ \n");
   TList* T=CreateTList();
   TEST_ASSERT(T!=NULL);
 
@@ -58,7 +57,6 @@ void test_Tfind(void){
 //----------Tests for CList----------\\
 
 void test_Ccreate(void){
-  printf("\n   //----------Tests for CList----------\\\\ \n");
   CList* C=CreateCList();
 
   TEST_ASSERT(C!=NULL);
@@ -99,54 +97,13 @@ void test_Cinsert(void){
 }
 
 
-//----------Tests for Hash----------\\
 
-
-void test_Hcreate(void){
-  printf("\n   //----------Tests for Hash----------\\\\ \n");
-  Hash* H=HashCreate(20);
-
-  TEST_ASSERT(H!=NULL);
-
-  FreeHash(H);
-}
-
-void test_Hinsert(void){
-  Hash* H=HashCreate(20);
-
-  int i;
-  char c;
-  char* camera;
-  char cam[10]="site//7";
-  for(i=0 ; i<5 ; i++){ //eisagw 5 domes camera sthn NList
-    c=i+'0';
-    camera=malloc(sizeof(char)*(strlen(cam)+2));  //Dimiourgo ena string "site//7i" opou anti gia i o arithmos tou i se kathe epanalipsi
-    strcpy(camera,cam);
-    strncat(camera,&c,1);
-    H=HashInsert(H,camera);
-    free(camera);
-  }
-
-  i=0;
-  NList* N;
-  for(int j=0 ; j<H->size ; j++){
-      N=(NList*)H[j].Head;
-      while(N->Next!=NULL){ //Metrao tis domes camera pou exoun isagxthei sthn NList
-        N=N->Next;
-        i++;
-      }
-  }
-
-  TEST_ASSERT(i==5); //Tsekaro an exoun isagxthei oses evala
-  FreeHash(H);
-}
 
 
 //----------Tests for NList----------\\
 
 
 void test_Ncreate(void){
-  printf("\n   //----------Tests for NList----------\\\\ \n");
   NList* N=CreateNList();  //Dimiourgo mia NList
   TList* D=CreateTList();   //Thn TList tin xriazome gia to Fee ths Nlist
 
@@ -186,11 +143,107 @@ void test_Ninsert(void){
   FreeeTList(D);
 }
 
+//----------Tests for WHash----------\\
+
+
+void test_WHcreate(void){
+  WHash* H=CreateWHash(20); //Dimiourgia enos WHash
+
+  TEST_ASSERT(H!=NULL);//Elegxos oti o WHash den einai NULL
+
+  FreeWHash(H);
+}
+
+void test_WHinsert(void){
+  WHash* H=CreateWHash(20);
+
+  int i;
+  char c;
+  char* camera;
+  char cam[10]="site//7";
+  for(i=0 ; i<5 ; i++){ //eisagw 5 leksis sto WHas
+    c=i+'0';
+    camera=malloc(sizeof(char)*(strlen(cam)+2));  //Dimiourgo ena string "site//7i" opou anti gia i o arithmos tou i se kathe epanalipsi
+    strcpy(camera,cam);
+    strncat(camera,&c,1);
+    H=InsertWHash(H,camera);
+    free(camera);
+  }
+
+  TEST_ASSERT(H->count==5); //Tsekaro an exoun isagxthei oses evala
+  FreeWHash(H);
+}
+
+
+//----------Tests for HVector----------\\
+
+
+void test_HVcreate(void){
+  HVector* H=CreateHVector(20);
+
+  TEST_ASSERT(H!=NULL);
+
+  FreeHVector(H);
+}
+
+void test_HVinsert(void){
+  HVector* H=CreateHVector(20);
+
+  int i;
+  for(i=0 ; i<10 ; i++){ //10 times se 10 thesis tou HVector
+    H=InsertHVector(H,i,i/3);
+  }
+
+  TEST_ASSERT(H->count==10); //Tsekaro an exoun isagxthei oses evala
+  FreeHVector(H);
+}
+
+
+//----------Tests for Hash----------\\
+
+
+void test_Hcreate(void){
+  Hash* H=HashCreate(20);
+
+  TEST_ASSERT(H!=NULL);
+
+  FreeHash(H);
+}
+
+void test_Hinsert(void){
+  Hash* H=HashCreate(20);
+
+  int i;
+  char c;
+  char* camera;
+  char cam[10]="site//7";
+  for(i=0 ; i<5 ; i++){ //eisagw 5 domes camera sthn NList
+    c=i+'0';
+    camera=malloc(sizeof(char)*(strlen(cam)+2));  //Dimiourgo ena string "site//7i" opou anti gia i o arithmos tou i se kathe epanalipsi
+    strcpy(camera,cam);
+    strncat(camera,&c,1);
+    H=HashInsert(H,camera);
+    free(camera);
+  }
+
+  i=0;
+  NList* N;
+  for(int j=0 ; j<H->size ; j++){
+      N=(NList*)H[j].Head;
+      while(N->Next!=NULL){ //Metrao tis domes camera pou exoun isagxthei sthn NList
+        N=N->Next;
+        i++;
+      }
+  }
+
+  TEST_ASSERT(i==5); //Tsekaro an exoun isagxthei oses evala
+  FreeHash(H);
+}
+
 
 //----------Tests for LHash----------\\
 
 void test_LHcreate(void){
-  printf("\n   //----------Tests for LHash----------\\\\ \n");
   LHash* H=LHashCreate(20);
 
   TEST_ASSERT(H!=NULL);
@@ -250,6 +303,10 @@ TEST_LIST={
   {"FindTList",test_Tfind},
   {"CreateCList",test_Ccreate},
   {"InsertCList",test_Cinsert},
+  {"WHashCreate",test_WHcreate},
+  {"WHashInsert",test_WHinsert},
+  {"VHashCreate",test_HVcreate},
+  {"VHashInsert",test_HVinsert},
   {"CreateNList",test_Ncreate},
   {"InsertNList",test_Ninsert},
   {"HashCreate",test_Hcreate},

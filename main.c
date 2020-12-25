@@ -152,14 +152,14 @@ int main( int argc, char *argv[] ){
             free(newdir);
         }
     }
-   printf("Just finished the storage of datasetX\n");
+   printf("The storage of datasetX  just finished\n");
 
    LHashTfIdf(LEK,H->count); //Ipologizo to IDF twn leksewn tou leksilogiou
    LEK=NMostLHash(LEK,1000);  //Pairnw tis 1000 pio simantikes leksi
    H=HashVectorts(H,LEK); //Dimiourgw gia kathe kamera ena vector simfona me to leksilogio
    FreeLHash(Common); //Apodesmevw to leksilogio kai to Common hash giati pleon den ta xriazome
    FreeLHash(LEK);
-   printf("Just finished the creation of the vectors\n");
+   printf("The creation of vectors just finished\n");
    char* first;
    char* second;
    int match=0,tcount,z=0,a=0;
@@ -245,7 +245,7 @@ int main( int argc, char *argv[] ){
   fclose(dataw);
   fclose(testing);
   fclose(validation);
-  printf("Just finished the reading of the datasetW\n");
+  printf("The reading of the datasetW just finished\n");
 
   scsv=fopen("Same.csv","w+"); //Dimiourgw ena neo csv arxio
   fprintf(scsv,"left_spec_id, right_spec_id\n");
@@ -258,11 +258,11 @@ int main( int argc, char *argv[] ){
 
   fclose(scsv);
   fclose(dcsv);
-  printf("Just finished the creation of the Sme and Diffrend csv files\n");
+  printf("The creation of the Same.csv and Diffrend.csv files just finished\n");
 
   Model model;
   model=Training("Same.csv","Diffrend.csv", H);
-  printf("Just finished whith the treining of the model\n");
+  printf("The training of the model just finished\n");
 
   Testing("Testing.csv",model,H);
 
