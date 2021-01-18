@@ -80,13 +80,29 @@ HVector* VectorConcat(HVector* F,HVector* S,int dif){
 	return C;
 }
 
+Input* InputInit(){
+	Input* in = malloc(sizeof(Input));
+	in->Cons = NULL;
+	in->matches = NULL;
+	in->size = 0;
+	return in;
+}
 
-Model Training(char* filename1 ,char* filename2,Hash* H){
+void FreeInput(Input* input)
+{
+	free(input->matches);
+	for(int i =0; i<input->size; i++)
+	{
+		FreeHVector(input->Cons[i]);
+	}
+	free(input->Cons);
+	free(input);
+}
 
-  FILE* fptr;
-  int   ismatch,z,a,size = H->Head->Next->vec_size,c=0;
-	int tc=0;
-	double k,result,p;
+Input* InputMake(char* filename1,char* filename2,Hash* H){
+
+	FILE* fptr;
+  int   a,z,ismatch,size = H->Head->Next->vec_size,count=0;
   char line[300];
   char* first;
   char* second;
@@ -94,39 +110,74 @@ Model Training(char* filename1 ,char* filename2,Hash* H){
 	HVector* F;
   HVector* S;
   HVector* Con;
+	Input* input=InputInit();
+
+	fptr = fopen(filename1, "r");	//Anigma tou protou arxiou(me tis thetikes sisxetiseis)
+	ismatch=1;	//oi sisxetiseis einai oles thetikes
+	a=0;
+	z=0;
+	for(int i=0 ; i<2; i++){ //Gia kathe ena ap ta dio arxia
+
+		while (fgets(line,sizeof(line),fptr)){//Diavazei to csv file grami grami
+			if(!i){	//Ean eimaste sto proto arxio
+					a++;	//Metrame tis thetikes sisxetisis
+			}else{	//Ean eimaste sto deftero arxio
+					if(z==2*a){	//Ean oi arnitikes sisxetisis einai oi diplasies stamatame to trainig gia afthn thn epanalipsh
+							break;
+					}else{	//Alios afksanoume tis arnitikes sisxetisis
+							z++;
+					}
+			}
+			token=strtok(line,",");
+			if(!strcmp(token,"left_spec_id"))  continue;	//Ean einai h proth gramh twn csv kanoume skip thn epanalipsh
+			first=strdup(token);
+			token = strtok(NULL, " \n");
+			second=strdup(token);
+			F=GetCameraVector(first,H);	//Pernoume to vector ths proths kameras
+			S=GetCameraVector(second,H);	//Pernoume to vector ths defterhs kameras
+			Con=VectorConcat(F,S,size);	//Ipologizoume to concatenation
+
+			input->Cons=realloc(input->Cons, (count+1)*sizeof(HVector*));
+			input->Cons[count] = Con;
+
+			input->matches= realloc(input->matches, (count+1)*sizeof(int));
+			input->matches[count] = ismatch;
+			count++;
+
+
+			free(first);
+			free(second);
+		}
+		fclose(fptr);//klinoume to arxio
+		if(!i){	//Ean imastan sto proto arxio anoigoume to deftero(me tis arnitikes sisxerisis)
+			fptr = fopen(filename2, "r");
+			ismatch = 0;
+		}
+	}
+	input->size=count;
+	return input;
+}
+
+
+
+Model Training(Input* input,Hash* H){
+
+  FILE* fptr;
+  int   size = H->Head->Next->vec_size,tc=0,c=0;
+	double k,p,result;
 	Model model;
 	model.array_size=2*size;
   model.weight_array=malloc(sizeof(double)*(model.array_size));
   memset(model.weight_array, 0,(model.array_size)*sizeof(double));
 	model.b=0;
+	HVector* Con;
 	while(tc<3){	//H ekpedefsth twv varewn tha ginei 5 fores
 		tc++;
-		fptr = fopen(filename1, "r");	//Anigma tou protou arxiou(me tis thetikes sisxetiseis)
-		ismatch=1;	//oi sisxetiseis einai oles thetikes
-		a=0;
-		z=0;
-  	for(int i=0 ; i<2; i++){ //Gia kathe ena ap ta dio arxia
-    	while (fgets(line,sizeof(line),fptr)){//Diavazei to csv file grami grami
-				if(!i){	//Ean eimaste sto proto arxio
-					a++;	//Metrame tis thetikes sisxetisis
-				}else{	//Ean eimaste sto deftero arxio
-					if(z==2*a){	//Ean oi arnitikes sisxetisis einai oi diplasies stamatame to trainig gia afthn thn epanalipsh
-						break;
-					}else{	//Alios afksanoume tis arnitikes sisxetisis
-						z++;
-					}
-				}
-      	token=strtok(line,",");
-      	if(!strcmp(token,"left_spec_id"))  continue;	//Ean einai h proth gramh twn csv kanoume skip thn epanalipsh
-      	first=strdup(token);
-      	token = strtok(NULL, " \n");
-      	second=strdup(token);
-				F=GetCameraVector(first,H);	//Pernoume to vector ths proths kameras
-      	S=GetCameraVector(second,H);	//Pernoume to vector ths defterhs kameras
-      	Con=VectorConcat(F,S,model.array_size/2);	//Ipologizoume to concatenation
+		for(int i=0 ; i<input->size ; i++){
+				Con=input->Cons[i];
       	p=Predict(model,Con);	//Ipologizoume thn provlepsh tou modelou
-
-      	k=p-ismatch;	//Ipologizoume thn apoklhsh ths provlepshs
+			//	printf("gia to %do vrika p:%f\n",i,p );
+      	k=p-input->matches[i];	//Ipologizoume thn apoklhsh ths provlepshs
 				c=0;
       	for(int j=0 ;  j<Con->size ; j++){	//Gia kathe varos
 					if(Con[j].key!=-1){
@@ -137,16 +188,7 @@ Model Training(char* filename1 ,char* filename2,Hash* H){
 					}
 					if(c==Con->count) break;
       	}
-      	FreeHVector(Con);
-      	free(first);
-      	free(second);
-    	}
-    	fclose(fptr);//klinoume to arxio
-    	if(!i){	//Ean imastan sto proto arxio anoigoume to deftero(me tis arnitikes sisxerisis)
-      	fptr = fopen(filename2, "r");
-  			ismatch = 0;
-    	}
-  	}
+    }
 	}
   return model;
 }

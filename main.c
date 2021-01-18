@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include <sys/times.h>
 #include "logistic.h"
+#include "JobSheduler.h"
 
 int main( int argc, char *argv[] ){
 
@@ -260,8 +261,9 @@ int main( int argc, char *argv[] ){
   fclose(dcsv);
   printf("The creation of the Same.csv and Diffrend.csv files just finished\n");
 
+  Input* input=InputMake("Same.csv","Diffrend.csv", H);
   Model model;
-  model=Training("Same.csv","Diffrend.csv", H);
+  model=Training(input,H);
   printf("The training of the model just finished\n");
 
   Testing("Testing.csv",model,H);
@@ -276,6 +278,7 @@ int main( int argc, char *argv[] ){
   }
 
   //apodesmefsh twn domwn
+  FreeInput(input);
   FreeHash(H);
   free(temp);
   free(model.weight_array);

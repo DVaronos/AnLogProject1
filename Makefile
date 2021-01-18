@@ -1,7 +1,7 @@
-sigmod : main.o logistic.o list.o hash.o
-	gcc -o sigmod main.o logistic.o list.o hash.o  -lm
+sigmod : main.o logistic.o list.o hash.o JobSheduler.o
+	gcc -o sigmod main.o logistic.o list.o hash.o JobSheduler.o -lm -pthread
 
-main.o : main.c logistic.h
+main.o : main.c logistic.h JobSheduler.h
 	gcc -c main.c
 
 logistic.o : logistic.c logistic.h
@@ -12,6 +12,9 @@ hash.o : hash.c hash.h
 
 list.o : list.c list.h
 	gcc -c list.c
+
+JobSheduler.o : JobSheduler.c JobSheduler.h
+	gcc -c JobSheduler.c
 
 run:
 	./sigmod $(ARGS)
