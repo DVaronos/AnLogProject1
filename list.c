@@ -94,6 +94,22 @@ void Diff(CList* F,CList* S){
 }
 
 
+int SearchDiffList(TList* DiffList, char* cam_id)
+{
+	CList* clptr = DiffList->node;
+	if (clptr->name == NULL)	//an o prwtos komvos einai "kefalida"
+	{
+		clptr = clptr->Next;	//phgaine ston epomeno
+	}
+	while (clptr != NULL)	//oso den einai o teleutaios komvos ths lisatas
+	{
+		if(strcmp(clptr->name, cam_id) == 0)	//an vre8ei sth lista
+			return 1;
+	}
+	return 0;
+}
+
+
 CList* AppendCList(CList* L ,CList* N){
 	CList* T=L;
 	CList* Head;

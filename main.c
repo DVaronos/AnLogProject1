@@ -263,7 +263,8 @@ int main( int argc, char *argv[] ){
 
   Input* input=InputMake("Same.csv","Diffrend.csv", H);
   Model model;
-  model=Training(input,H);
+  // model=Training(input,H);
+  model = RepetitiveTaining(input, H, NULL);
   printf("The training of the model just finished\n");
 
   Testing("Testing.csv",model,H);

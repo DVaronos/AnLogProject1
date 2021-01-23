@@ -143,6 +143,39 @@ void HashConect(Hash* H,char* first,char* second,int match){ /*Eisagei enan neo 
 }
 
 
+int CheckIfOpposite (Hash* H, char* first, char* second)
+{
+	NList* L;
+	int i=0,j=0,in;
+	char name[40];
+	while(first[i]!='/'){//Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
+	  i++;
+	}
+	i+=2;//pigeno to i sthn thesh pou arxizei o arithmos tou proiontos
+	while(i<strlen(first)){
+	   name[j]=first[i];
+	   j++;
+	   i++;
+	}
+	name[j]='\0';
+	in=atoi(name);//apothievo ton arithmo tou proiontos ston int in
+	int index=hash(in,H->size);
+	L=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
+
+	while(L->Next!=NULL){	//Vrisko ton komvo ston opio einai apothikevmeno to product
+		L=L->Next;
+		if(!strcmp(L->camera,first)){
+				break;
+		}
+	}
+	if(L == NULL)	//an den vre8hke to 1o proion
+		return 0;
+	if( SearchDiffList(L->clique->Diffrend, second) == 0)	//an den einai sthn lista me tis diaforetikes cameres
+		return 0;
+	else	//an einai opposites
+		return 1;
+}
+
 void HashTransfer(Hash* H,FILE* csvfile){//Metaferi ta proionta poy teriazoun se ena csv arxio
   NList *L;
   TList* Transfered=CreateTList();
@@ -222,6 +255,9 @@ WHash* HashFind(Hash* H,char* word){
   }
   return NULL;
 }
+
+
+
 
 Hash* HashReplaceSpear(Hash* H,char* word,WHash* Spear){  //Antikathistw to WHash ths cameras me onoma word
   NList *L;

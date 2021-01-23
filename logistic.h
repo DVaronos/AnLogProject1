@@ -32,3 +32,7 @@ double Norm(Model );
 
 void TestAllData(Hash* ,Model );
 void Testing(char* ,Model ,Hash* );
+
+// ------------------------------------
+Input TestAndAdd(Input* initial_input, Model* model, Hash* H, char* filename, float threshold);
+Model RepetitiveTaining(Input*, Hash* H, Input* test_set);

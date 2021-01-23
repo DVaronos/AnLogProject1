@@ -25,6 +25,10 @@ Hash* HashInsert(Hash* ,char* );
 Hash* rehash(Hash* );
 Hash* HashReplaceSpear(Hash* ,char* ,WHash* );
 
+//dexetai duo cameres kai elegxei an h mia vrisketai sth lista me ta anti8eta ths allhs
+int CheckIfOpposite (Hash* H, char* first, char* second);
+
+
 
 //--------------------Domh LHash--------------------\\
 

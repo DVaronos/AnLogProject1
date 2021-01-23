@@ -22,6 +22,8 @@ void FreeCList(CList* );
 void Diff(CList* ,CList* );
 void DiffCList(CList*,TList* ,FILE* );
 
+
+
 //--------------------Domh TList-----------------------------\\
 
 
@@ -111,3 +113,6 @@ void InsertNList(NList* ,char* );
 void PrintNList(NList* );
 void FreeNList(NList* ,TList* );
 void DiffNList(NList* ,TList * ,FILE* );
+
+// elegxei an yparxei h camera sthn lista me tis diaforetikes
+int SearchDiffList(TList* DiffList, char* cam_id);

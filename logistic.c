@@ -102,14 +102,14 @@ void FreeInput(Input* input)
 Input* InputMake(char* filename1,char* filename2,Hash* H){
 
 	FILE* fptr;
-  int   a,z,ismatch,size = H->Head->Next->vec_size,count=0;
-  char line[300];
-  char* first;
-  char* second;
-  char* token=NULL;
+	int   a,z,ismatch,size = H->Head->Next->vec_size,count=0;
+	char line[300];
+	char* first;
+	char* second;
+	char* token=NULL;
 	HVector* F;
-  HVector* S;
-  HVector* Con;
+	HVector* S;
+	HVector* Con;
 	Input* input=InputInit();
 
 	fptr = fopen(filename1, "r");	//Anigma tou protou arxiou(me tis thetikes sisxetiseis)
@@ -162,13 +162,13 @@ Input* InputMake(char* filename1,char* filename2,Hash* H){
 
 Model Training(Input* input,Hash* H){
 
-  FILE* fptr;
-  int   size = H->Head->Next->vec_size,tc=0,c=0;
+	FILE* fptr;
+	int size = H->Head->Next->vec_size,tc=0,c=0;
 	double k,p,result;
 	Model model;
 	model.array_size=2*size;
-  model.weight_array=malloc(sizeof(double)*(model.array_size));
-  memset(model.weight_array, 0,(model.array_size)*sizeof(double));
+	model.weight_array=malloc(sizeof(double)*(model.array_size));
+	memset(model.weight_array, 0,(model.array_size)*sizeof(double));
 	model.b=0;
 	HVector* Con;
 	while(tc<3){	//H ekpedefsth twv varewn tha ginei 5 fores
@@ -343,4 +343,92 @@ double Norm(Model model){	//Ipologismos ths normas tou vector  tou modleou
 		sum+=model.weight_array[i]*model.weight_array[i];
 	}
 	return sqrt(sum);
+}
+
+// =====================================
+
+Input TestAndAdd(Input* initial_input,Model* model, Hash* H, char* filename, float threshold)
+{
+	FILE* fptr = fopen(filename, "r");
+	int tcount, ismatch;
+	char line[300], *first, *second, *token=NULL;
+	double p, correct=0, sum=0;
+	HVector *F, *S;
+	HVector *Con;
+
+	while (fgets(line,sizeof(line),fptr)){//Diavazei to csv file grami grami
+	  token=strtok(line,",");
+	  if(!strcmp(token,"left_spec_id"))  continue;
+	  tcount=0;
+	  while(token!=NULL){//apothikefsi tou kathe stixoiou ths gramhs se metavlites
+	   tcount++;
+	   switch(tcount){
+		 case 1://ean tcount==1 tote to token isoute me to proto proion
+		   first=malloc(sizeof(char)*(strlen(token)+1));
+		   strcpy(first,token);
+		   break;
+		 case 2://ean tcount==2 tote to token isoute me to deftero proion
+		   second=malloc(sizeof(char)*(strlen(token)+1));
+		   strcpy(second,token);
+		   break;
+		   // den xreiazetai h 3h sthlh gt emeis 8a kanoume mono predict kai oxi elegxo me pragmatikh timh
+		 // case 3://Ean tcount==3 tote to token einai 0 h 1 analoga to an teriazoun ta proionta
+		 //   match=atoi(token);
+		 //   break;
+	   }
+	   token=strtok(NULL,",");
+	 }
+	 F=GetCameraVector(first,H);
+	 S=GetCameraVector(second,H);
+	 Con=VectorConcat(F,S,model->array_size/2);
+	 p=Predict(*model,Con);
+
+	 if(p<threshold)	//add as not match
+	 {
+		 ismatch = 0;
+		 if(CheckIfOpposite(H, first, second) == 0)	//an den uparxei hdh arnhtikh susxethsh
+		 	HashConect(H, first, second, ismatch);
+	 }
+	 else if(p> 1- threshold)	//add as match
+	 {
+		 ismatch = 1;
+		 if(CheckIfOpposite(H, first, second) == 0)
+		 	HashConect(H, first, second, ismatch);
+	 }
+
+	 // pros8hkh tou neou vector sto palio input
+	 initial_input->Cons=realloc(initial_input->Cons, (initial_input->size +1)*sizeof(HVector*));
+	 initial_input->Cons[initial_input->size] = Con;
+
+	 initial_input->matches= realloc(initial_input->matches, (initial_input->size +1)*sizeof(int));
+	 initial_input->matches[initial_input->size] = ismatch;
+	 initial_input->size++;
+
+	 free(first);
+	 free(second);
+	   free(Con);
+   }
+   return *initial_input;
+}
+
+Model RepetitiveTaining(Input* initial_input, Hash* H, Input* test_set)
+{
+	int size = H->Head->Next->vec_size;
+	float threshold = 0.1;
+	float step_value = 0.2;
+	Input* training_set = initial_input;
+	Model* model = malloc(sizeof(Model));
+	// model initialization
+	model->array_size=2*size;
+	model->weight_array=malloc(sizeof(double)*(model->array_size));
+	memset(model->weight_array, 0,(model->array_size)*sizeof(double));
+	model->b=0;
+
+	while (threshold <= 0.5)
+	{
+		*model = Training(training_set, H);
+		*training_set = TestAndAdd(training_set, model, H, "Testing.csv", threshold);
+		threshold += step_value;
+	}
+	return *model;
 }
