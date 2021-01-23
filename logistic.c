@@ -387,26 +387,32 @@ Input TestAndAdd(Input* initial_input,Model* model, Hash* H, char* filename, flo
 	 {
 		 ismatch = 0;
 		 if(CheckIfOpposite(H, first, second) == 0)	//an den uparxei hdh arnhtikh susxethsh
-		 	HashConect(H, first, second, ismatch);
+		 {	HashConect(H, first, second, ismatch);
+			// pros8hkh tou neou vector sto palio input
+			initial_input->Cons=realloc(initial_input->Cons, (initial_input->size +1)*sizeof(HVector*));
+			initial_input->Cons[initial_input->size] = Con;
+
+			initial_input->matches= realloc(initial_input->matches, (initial_input->size +1)*sizeof(int));
+			initial_input->matches[initial_input->size] = ismatch;
+			initial_input->size++;}
 	 }
 	 else if(p> 1- threshold)	//add as match
 	 {
 		 ismatch = 1;
 		 if(CheckIfOpposite(H, first, second) == 0)
-		 	HashConect(H, first, second, ismatch);
+		 {	HashConect(H, first, second, ismatch);
+			// pros8hkh tou neou vector sto palio input
+			initial_input->Cons=realloc(initial_input->Cons, (initial_input->size +1)*sizeof(HVector*));
+			initial_input->Cons[initial_input->size] = Con;
+
+			initial_input->matches= realloc(initial_input->matches, (initial_input->size +1)*sizeof(int));
+			initial_input->matches[initial_input->size] = ismatch;
+			initial_input->size++;}
 	 }
 
-	 // pros8hkh tou neou vector sto palio input
-	 initial_input->Cons=realloc(initial_input->Cons, (initial_input->size +1)*sizeof(HVector*));
-	 initial_input->Cons[initial_input->size] = Con;
-
-	 initial_input->matches= realloc(initial_input->matches, (initial_input->size +1)*sizeof(int));
-	 initial_input->matches[initial_input->size] = ismatch;
-	 initial_input->size++;
 
 	 free(first);
 	 free(second);
-	   free(Con);
    }
    return *initial_input;
 }
@@ -429,6 +435,7 @@ Model RepetitiveTaining(Input* initial_input, Hash* H, Input* test_set)
 		*model = Training(training_set, H);
 		*training_set = TestAndAdd(training_set, model, H, "Testing.csv", threshold);
 		threshold += step_value;
+
 	}
 	return *model;
 }
