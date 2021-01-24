@@ -551,6 +551,7 @@ LHash* Readjson(char* filename,LHash* H,LHash* Common,WHash** L){ //Diavazei to 
 		count++;
 		for(int j=0; j<=strlen(word);j++){  //Metatrepei ta kegalea se peza
 			if(word[j]>=65 && word[j]<=90)	word[j]=word[j]+32;
+		}
 	}
 
 
