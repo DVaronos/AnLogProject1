@@ -167,15 +167,15 @@ Model Training(Model model,Input* input,Hash* H,JobSheduler* Sheduler){
 	double w,b;
 	Job* job;
 	TrainStruct** array=malloc(sizeof(TrainStruct*)*msize);
-	while(start<input->size){
-		if(curr<msize){
-			array[curr]=malloc(sizeof(TrainStruct)*Sheduler->num);
-		}else{
+	while(start<input->size){ //Gia ola ta zevgaria tou input
+		if(curr<msize){//Ean iparxei xwros ston array
+			array[curr]=malloc(sizeof(TrainStruct)*Sheduler->num); //ftiakse mia lista apo TrainStruct
+		}else{//Resize kata 10 thesis ton pinaka array
 			msize+=10;
 			array=realloc(array,msize*sizeof(TrainStruct*));
 			array[curr]=malloc(sizeof(TrainStruct)*Sheduler->num);
 		}
-		for(i=0 ; i<Sheduler->num ; i++ ){
+		for(i=0 ; i<Sheduler->num ; i++ ){	//Gia kathe thread ftiakse mia domh TrainStruct kai arxikopieise thn
 			array[curr][i].w=malloc(model.array_size*sizeof(double));
 			for(j=0 ; j<model.array_size ; j++){
 				array[curr][i].w[j]=model.weight_array[j];
@@ -187,14 +187,14 @@ Model Training(Model model,Input* input,Hash* H,JobSheduler* Sheduler){
 			if(start>=input->size) start=input->size;
 			array[curr][i].end=start;
 			start++;
-			job=JobCreate(JobTraining,(void*)(array[curr]+i));
-			JSAddWork(Sheduler,job);
-			if(start==((input->size)+1)) break;
+			job=JobCreate(JobTraining,(void*)(array[curr]+i));	//Dimiourgise ena neo job
+			JSAddWork(Sheduler,job);	//Dwse to job ston Sheduler
+			if(start==((input->size)+1)) break;	//An elegthoun ola ta zevgaria vges ap thn for
 		}
-		JSWaitalltasks(Sheduler);
+		JSWaitalltasks(Sheduler);	//Perimene na teleiosoun ta threads
 		limit=i;
 		if(start==((input->size)+1)) limit++;
-		for(i=0 ; i<model.array_size ; i++){
+		for(i=0 ; i<model.array_size ; i++){	//arxikopieise to w kai to b
 			w=0;
 			for(j=0 ; j<limit ; j++){
 				w+=array[curr][j].w[i];
@@ -211,7 +211,7 @@ Model Training(Model model,Input* input,Hash* H,JobSheduler* Sheduler){
 		curr++;
 	}
 	JSWaitalltasks(Sheduler);
-	for(int r=0 ; r<msize ; r++){
+	for(int r=0 ; r<msize ; r++){	//Apodesmefse to array
 		if(r<curr){
 			for(int t=0 ; t<Sheduler->num ; t++){
 				if((r==(curr-1)) && (t==limit)) break;
@@ -325,7 +325,7 @@ double Predict(double** w,double* b,HVector* con){
 	return p;
 }
 
-double Newpred(double* w,double b,HVector* F,HVector* S,int dif){
+double Newpred(double* w,double b,HVector* F,HVector* S,int dif){//Vriskei to predict xwris na ginei to concat
 
 	int fr,se,c;
 	double wx,sum=b;
@@ -380,16 +380,16 @@ void TestAndAdd(Hash* H,Model model,JobSheduler* Sheduler,Input** input,double t
 	int i,sum,who=0,start=1,msize=10,curr=0;
 	TestStruct** current=malloc(sizeof(TestStruct*)*msize);
 	NList** nodes;
-	MakeArrays(H,&sum,&nodes);
-	while(who<(sum-1)){
-		if(curr<msize){
+	MakeArrays(H,&sum,&nodes); //Ftiaxnw ena array me NList komvous gia kathe kamera pou den exei klika
+	while(who<(sum-1)){ //Gia oles aftes is kameres
+		if(curr<msize){	//Ean iparxei xoros sto array
 	    current[curr]=malloc(sizeof(TestStruct)*Sheduler->num);
-	  }else{
+	  }else{//Allios resize to array kata 10
 	    msize+=10;
 	    current=realloc(current,msize*sizeof(TestStruct*));
 	    current[curr]=malloc(sizeof(TestStruct)*Sheduler->num);
 	  }
-		for(i=0 ; i<Sheduler->num ; i++){
+		for(i=0 ; i<Sheduler->num ; i++){	//Gia kathe thread ftiakse ena TestStruct kai arxikopieise to
 			current[curr][i].who=who;
 			current[curr][i].start=start;
 			start+=1000;
@@ -403,8 +403,8 @@ void TestAndAdd(Hash* H,Model model,JobSheduler* Sheduler,Input** input,double t
 			current[curr][i].Sheduler=Sheduler;
 			current[curr][i].nodes=nodes;
 			current[curr][i].sum=sum-1;
-			job=JobCreate(TestData,(void*)(current[curr]+i));
-			JSAddWork(Sheduler,job);
+			job=JobCreate(TestData,(void*)(current[curr]+i)); //ftiakse ena job
+			JSAddWork(Sheduler,job); //Dose to job sto Sheduler
 			start++;
 			if(start==sum){
 				who++;
@@ -412,7 +412,7 @@ void TestAndAdd(Hash* H,Model model,JobSheduler* Sheduler,Input** input,double t
 				start=who+1;
 			}
 		}
-		JSWaitalltasks(Sheduler);
+		JSWaitalltasks(Sheduler); //perimene na teliosoun ta threads
 		curr++;
 	}
 
@@ -435,21 +435,21 @@ void TestData(void* args){
 	HVector* Con;
 	for(j=(argument->start) ; j < (argument->end) ; j++){
 		Nother=argument->nodes[j];
-		S=Nother->vector;	//Apothikevo to vector ths
-		p=Newpred((argument->w),(argument->b),F,S,1000);	//Vrisko to concatenation
-		if((p<(argument->threshold)) || (p>(1-(argument->threshold)))){
+		S=Nother->vector;	//Apothikevo to vector
+		p=Newpred((argument->w),(argument->b),F,S,1000);	//Vrisko to predict
+		if((p<(argument->threshold)) || (p>(1-(argument->threshold)))){ //Ean einai isxhrh h pithanothta
 			if(p<(argument->threshold)){
 				ismatch=0;
 			}else{
 				ismatch=1;
 			}
-		 		if(SearchDiffList(N->clique,Nother->clique) == 0){	//an den uparxei hdh arnhtikh susxethsh
-					pthread_mutex_lock(&(argument->Sheduler->lock));
-					if( N->clique==NULL){
+		 		if(SearchDiffList(N->clique,Nother->clique) == 0){	//an den uparxei  susxethsh metaksi twn camerwn
+					pthread_mutex_lock(&(argument->Sheduler->lock)); //Klidwnei to mutex
+					if( N->clique==NULL){	//Ean h klika den iparxei arxikopieite
 						N->clique=CreateCList();
 						InsertCList(N->clique,N->camera,N);
 					}
-					if(Nother->clique==NULL){
+					if(Nother->clique==NULL){//Ean h klika den iparxei arxikopieite
 						Nother->clique=CreateCList();
 						InsertCList(Nother->clique,Nother->camera,Nother);
 					}
@@ -459,6 +459,7 @@ void TestData(void* args){
 				    Diff(N->clique,Nother->clique);
 				  }
 
+					//Vriskoume to concatenation kai to isagoume sto input
 					Con=VectorConcat(F,S,1000);
 
 					argument->input->Cons=realloc(argument->input->Cons, (argument->input->size+1)*sizeof(HVector*));
@@ -475,7 +476,7 @@ void TestData(void* args){
 }
 
 
-void MakeArrays(Hash* H,int* s,NList*** nodes){
+void MakeArrays(Hash* H,int* s,NList*** nodes){ //Dimiourgo ena pinaka me NList nodes twn kamerwn pou den einai mesa se kapia klika
 	NList* N;
 	int sum=0;
 	for(int i=0 ; i<H->size ; i++){
@@ -512,7 +513,7 @@ Model RepetitiveTaining(Input* input,Hash* H,JobSheduler* Sheduler){
   model.weight_array=malloc(sizeof(double)*(model.array_size));
   memset(model.weight_array, 0,(model.array_size)*sizeof(double));
 	model.b=0;
-	while (threshold <= 0.3){
+	while (threshold <=0.3){
 		model = Training(model,input,H,Sheduler);
 		printf("Just finished the training for %d time\n",ep);
 		TestAndAdd(H,model,Sheduler,&input,threshold);

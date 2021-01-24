@@ -43,7 +43,7 @@ void RemoveTList(TList* ,CList* );
 
 int CountTList(TList* );
 int FindTList(TList* ,CList*);
-void Print_Camera_Count_TList(TList* T);
+void Print_Camera_Count_TList(TList* );
 
 //--------------------Domh WHash-----------------------------//
 
