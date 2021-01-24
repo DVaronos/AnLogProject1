@@ -423,7 +423,7 @@ void TestAndAdd(Hash* H,Model model,JobSheduler* Sheduler,Input** input,double t
 	}
 
 	JSWaitalltasks(Sheduler);
-	printf("teloss me %d\n",who );
+	// printf("teloss me %d\n",who );
 	for(int k=0 ; k<curr ; k++){
 		free(current[k]);
 	}
@@ -489,7 +489,7 @@ void TestData(void* args){
 	}
 
 
-	if(argument->end==argument->sum) printf("telos me to %d\n",argument->who );
+	// if(argument->end==argument->sum) printf("telos me to %d\n",argument->who );
 }
 
 

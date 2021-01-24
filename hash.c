@@ -542,6 +542,18 @@ LHash* Readjson(char* filename,LHash* H,LHash* Common,WHash** L){ //Diavazei to 
   char line[250];
   char* word;
   int count=0;
+
+	// first line is opening char '{' , not needed
+	fgets(line, sizeof(line),fp);
+	fgets(line, sizeof(line),fp); 	//gets second line, the first with data...
+	word=strtok(line,"");	//pairnei to 1o paidio me thn etiketa (p einai mesa se "..")
+	while(word!=NULL){ //Gia kathe leksi tis gramhs
+		count++;
+		for(int j=0; j<=strlen(word);j++){  //Metatrepei ta kegalea se peza
+			if(word[j]>=65 && word[j]<=90)	word[j]=word[j]+32;
+	}
+
+
   while(fgets(line, sizeof(line),fp)){  //Diavazei to json grami gami
 
 			word=strtok(line,symbols);
