@@ -152,7 +152,10 @@ void FreeCList(CList* L){//Apodesmevi thn CList
 int SearchDiffList(CList* C,CList* S){
 	if(C==NULL || S==NULL) return 0;
 	if(C==S) return 1;
-	return !(FindTList(C->Diffrend,S));
+	int ret;
+	ret=FindTList(C->Diffrend,S);
+	if(ret) return 0;
+	return 1;
 }
 
 
