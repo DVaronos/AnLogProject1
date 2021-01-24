@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "list.h"
 
-//--------------------Sinartiseis gia thn domh CList-----------------------------\\
+//--------------------Sinartiseis gia thn domh CList-----------------------------//
 
 
 CList* CreateCList(){ //Dimiourgei mia nea CList
@@ -94,25 +94,6 @@ void Diff(CList* F,CList* S){
 }
 
 
-int SearchDiffList(TList* DiffList, char* cam_id)
-{
-	TList* difflist = DiffList->Next;
-	while (difflist != NULL)
-	{
-		CList* clptr = difflist->node->Next;
-
-		while (clptr != NULL)	//oso den einai o teleutaios komvos ths lisatas
-		{
-			if(strcmp(clptr->name, cam_id) == 0)	//an vre8ei sth lista
-			return 1;
-			clptr = clptr->Next;
-		}
-		difflist = difflist->Next;
-	}
-	return 0;
-}
-
-
 CList* AppendCList(CList* L ,CList* N){
 	CList* T=L;
 	CList* Head;
@@ -168,8 +149,14 @@ void FreeCList(CList* L){//Apodesmevi thn CList
   free(L);
 }
 
+int SearchDiffList(CList* C,CList* S){
+	if(C==NULL || S==NULL) return 0;
+	if(C==S) return 1;
+	return !(FindTList(C->Diffrend,S));
+}
 
-//--------------------Sinartiseis gia thn domh TList-----------------------------\\
+
+//--------------------Sinartiseis gia thn domh TList-----------------------------//
 
 
 TList* CreateTList(){ //Dimiourgei mia nea TList
@@ -181,6 +168,7 @@ TList* CreateTList(){ //Dimiourgei mia nea TList
 }
 
 int FindTList(TList* L,CList* node){//Epistrefei 0 an iparxi to node sthn lista allios epistrefei 1
+	if(L==NULL) return 1;
 	while(L->Next!=NULL){
 		L=L->Next;
 		if(L->node==node) return 0;
@@ -265,7 +253,7 @@ void ReplaceTList(TList* T,CList* P,CList* N){	//Antikathista mia CList sthn TLi
 	}
 }
 
-//--------------------Sinartiseis gia thn domh NList-----------------------------\\
+//--------------------Sinartiseis gia thn domh NList-----------------------------//
 
 
 NList* CreateNList(){ /*Dimiourgei mia nea WHash*/
@@ -372,7 +360,7 @@ void FreeNList(NList* L,TList* Deleted){//Apodesmevi thn NList
 }
 
 
-//--------------------Sinartiseis gia thn domh WHash-----------------------------\\
+//--------------------Sinartiseis gia thn domh WHash-----------------------------//
 
 
 WHash* CreateWHash(int size){ //Dimiourgia enos neou WHash
@@ -389,7 +377,7 @@ WHash* CreateWHash(int size){ //Dimiourgia enos neou WHash
 }
 
 WHash* InsertWHash(WHash* H,char* word){	//Eisagei ena neo value stho WHash
-	int j=0,index,exist=0,r=0;
+	int j=0,index,exist=0;
 
   while(1){ //Evresi tou bucket pou tha paei to neo product
     if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish whashf
@@ -421,7 +409,7 @@ WHash* InsertWHash(WHash* H,char* word){	//Eisagei ena neo value stho WHash
 
 WHash* Wrehash(WHash* H){
   WHash*  Temp;
-  int i,index,j,exist;
+  int i,index,j;
   Temp=(WHash* )malloc( (H->size*2) *  sizeof(WHash) ); //Dimiourgo ena neo HasTable me thn diplasia xoritikotita
   Temp->size=H->size * 2;
   Temp->count=H->count;
@@ -468,7 +456,7 @@ WHash* WHashTF(WHash* H ){
 int whashf(char *str,int size){ //Hash sinartisi gia strings
   int hash = 5381;
   int c;
-  while (c = *str++)
+  while ((c = *str++))
     hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
   return abs(hash % size);;
@@ -510,7 +498,7 @@ int WHashFind(WHash* H,char* word){ //Epistrefei 1 an iparxei  leksh sto hash al
 
 
 double GiveTfIdf(WHash* H,char* camera){ //Epistrefei thn timh tou tf an iparxei h leksh allios 0
-	int j=0,index,exist=0;
+	int j=0,index;
 
   while(1){
     if(!j){
@@ -550,7 +538,7 @@ void PrintWHash(WHash* H){
 }
 
 
-//--------------------Sinartiseis gia thn domh HVector-----------------------------\\
+//--------------------Sinartiseis gia thn domh HVector-----------------------------//
 
 int HVhash(int id,int size){
   id^= (id << 13);
@@ -565,6 +553,7 @@ HVector* CreateHVector(int size){ //Dimiourgia enos neou WHash
 	H=(HVector *)malloc(sizeof(HVector)*size);
 	H->size=size;
 	H->count=0;
+	H->sum=0;
 	for(int i=0 ; i< size ; i++){//gia kathe bucket tou HashTable arxikopiise ta dedomena
 		H[i].key=-1;
 		H[i].value=0;
@@ -574,7 +563,7 @@ HVector* CreateHVector(int size){ //Dimiourgia enos neou WHash
 
 
 HVector* InsertHVector(HVector* H,int key,double value){	//Eisagei ena neo value stho WHash
-	int j=0,index,exist=0;
+	int j=0,index;
 
   while(1){ //Evresi tou bucket pou tha paei to neo product
     if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish whashf
@@ -584,6 +573,7 @@ HVector* InsertHVector(HVector* H,int key,double value){	//Eisagei ena neo value
     }
     if(H[index].key==-1){  //Ean einai adio to bucket tha isagoume se afto thn leksh
 			H->count++;
+			(H->sum)+=value;
 			H[index].key=key;
 			H[index].value=value;
       break;
@@ -599,10 +589,11 @@ HVector* InsertHVector(HVector* H,int key,double value){	//Eisagei ena neo value
 
 HVector* HVrehash(HVector* H){
   HVector*  Temp;
-  int i,index,j,exist;
-  Temp=(HVector* )malloc( (H->size*1.5) *  sizeof(WHash) ); //Dimiourgo ena neo HasTable me thn diplasia xoritikotita
+  int i;
+  Temp=(HVector* )malloc( (H->size*1.5) *  sizeof(HVector) ); //Dimiourgo ena neo HasTable me thn diplasia xoritikotita
   Temp->size=H->size * 1.5;
   Temp->count=0;
+	Temp->sum=0;
   for(i=0 ; i< Temp->size ; i++){
     Temp[i].key=-1;
     Temp[i].value=0;

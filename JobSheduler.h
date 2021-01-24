@@ -2,7 +2,7 @@
 
 typedef void (*tfunc)(void *arg);
 
-//--------------------Domh Job-----------------------------\\
+//--------------------Domh Job-----------------------------//
 
 typedef struct job{
   tfunc func;
@@ -13,7 +13,7 @@ typedef struct job{
 Job* JobCreate(tfunc ,void* arg);
 void JobDestroy(Job* );
 
-//--------------------Domh JobSheduler-----------------------------\\
+//--------------------Domh JobSheduler-----------------------------//
 
 typedef struct js{
   Job* First;

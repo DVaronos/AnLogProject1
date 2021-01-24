@@ -2,7 +2,7 @@
 
 typedef struct nlist NList;
 typedef struct tlist TList;
-//--------------------Domh CList-----------------------------\\
+//--------------------Domh CList-----------------------------//
 
 
 typedef struct clist{
@@ -22,9 +22,9 @@ void FreeCList(CList* );
 void Diff(CList* ,CList* );
 void DiffCList(CList*,TList* ,FILE* );
 
+int SearchDiffList(CList* , CList* );
 
-
-//--------------------Domh TList-----------------------------\\
+//--------------------Domh TList-----------------------------//
 
 
 typedef struct tlist{
@@ -45,7 +45,7 @@ int CountTList(TList* );
 int FindTList(TList* ,CList*);
 void Print_Camera_Count_TList(TList* T);
 
-//--------------------Domh WHash-----------------------------\\
+//--------------------Domh WHash-----------------------------//
 
 typedef struct whash{
   double tfidf;
@@ -71,11 +71,12 @@ void FreeWHash(WHash* );
 void PrintWHash(WHash* );
 
 
-//--------------------Domh HVector-----------------------------\\
+//--------------------Domh HVector-----------------------------//
 
 typedef struct hvector{
   int key;
   double value;
+  double sum;
   int count;
   int size;
 }HVector;
@@ -91,7 +92,7 @@ double HVSumValues(HVector* );
 
 void PrintHVector(HVector* );
 void FreeHVector(HVector* );
-//--------------------Domh NList-----------------------------\\
+//--------------------Domh NList-----------------------------//
 
 
 struct nlist{
@@ -113,6 +114,3 @@ void InsertNList(NList* ,char* );
 void PrintNList(NList* );
 void FreeNList(NList* ,TList* );
 void DiffNList(NList* ,TList * ,FILE* );
-
-// elegxei an yparxei h camera sthn lista me tis diaforetikes
-int SearchDiffList(TList* DiffList, char* cam_id);

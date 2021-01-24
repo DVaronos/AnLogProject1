@@ -6,16 +6,16 @@
 #include <dirent.h>
 #include <sys/times.h>
 #include "logistic.h"
-#include "JobSheduler.h"
 
 int main( int argc, char *argv[] ){
 
-    double t1, t2,time,ticspersec,t3;
+    double t1, t2,time,ticspersec;
     struct tms tb1, tb2;
 
     ticspersec = (double) sysconf(_SC_CLK_TCK);
     t1 = (double) times(&tb1);
 
+   JobSheduler* Sheduler= JSInit(16);
    DIR* directory;
    DIR* indirectory;
    struct dirent* new_directory;
@@ -29,9 +29,8 @@ int main( int argc, char *argv[] ){
    char* dd;
    char* token=NULL;
    char line[300];
-   int inputexist=0,dexist=0,files=0,jcount=0;
+   int inputexist=0,dexist=0;
    char c;
-   int oe=0;
 
    for(int i=1 ; i<argc ; i++){//Elegxos gia to an iparxei arxio eisodou
      if(strcmp(argv[i],"-w")==0){//Efoson iparxi inputfile apothikefsi tou onomatos tou
@@ -42,8 +41,6 @@ int main( int argc, char *argv[] ){
        dd=malloc(sizeof(char)*(strlen(argv[i+1])+1));
        strcpy(dd,argv[i+1]);
        dexist=1;
-     } else if(strcmp(argv[i],"-o")==0){//Elegxos gia to an iparxei epilogi na dokimastoun gia to modelo ola ta dedomena tou datasetX metaxi tous
-       oe=1;
      }
    }
 
@@ -109,7 +106,7 @@ int main( int argc, char *argv[] ){
 
   fclose(com);
 
-   while( new_directory=readdir(directory) ){ //Diavazw to periexomeno tou fakelou pou dothike(diladi tous ipofakelous)
+   while( (new_directory=readdir(directory)) ){ //Diavazw to periexomeno tou fakelou pou dothike(diladi tous ipofakelous)
 
         if(strcmp(new_directory->d_name,".") && strcmp(new_directory->d_name,"..")){ //Ean den einai o eaftos rou h o proigoumenos
 
@@ -122,7 +119,7 @@ int main( int argc, char *argv[] ){
                 perror("ERORR\n");
                 return 0;
             }else{
-                while( curfile=readdir(indirectory) ){ //Divazo to periexomenotou ypofakelou(Diladi ta json files pou einai messa se afton ton fakelo)
+                while( (curfile=readdir(indirectory)) ){ //Divazo to periexomenotou ypofakelou(Diladi ta json files pou einai messa se afton ton fakelo)
 
                     if(strcmp(curfile->d_name,".") && strcmp(curfile->d_name,"..")){  //Ean den einai o eaftos rou h o proigoumenos
 
@@ -177,7 +174,7 @@ int main( int argc, char *argv[] ){
      }
 	 }
    fclose(dataw);
-   int sa,ta,sz,tz,trz=0,tra=0,tez=0,tea=0,vz=0,va=0;
+   int sa,ta,sz,tz,trz=0,tra=0,tez=0,tea=0;
 
    sa=a*0.6;  //to 60% twn thetikwn sisxetisewn tou dataw
    ta=(a-sa)/2; ////to 20% twn thetikwn sisxetisewn tou dataw
@@ -260,26 +257,17 @@ int main( int argc, char *argv[] ){
   fclose(scsv);
   fclose(dcsv);
   printf("The creation of the Same.csv and Diffrend.csv files just finished\n");
-
   Input* input=InputMake("Same.csv","Diffrend.csv", H);
   Model model;
-  // model=Training(input,H);
-  model = RepetitiveTaining(input, H, NULL);
+  model=RepetitiveTaining(input,H,Sheduler);
   printf("The training of the model just finished\n");
 
   Testing("Testing.csv",model,H);
 
-  if(oe){//Ean iparxi epilogh tou elegxou olwn twn dedomenwn tou datasetX metaksi tous
-    t2 = (double) times(&tb2);
-    TestAllData(H,model);
-    t3=t2;
-    t2 = (double) times(&tb2);
-    time=((t2 - t3) / ticspersec);  //O xrronos pou perase gia na vrethei o arithmos
-    printf("Ola gia ola was %f secs\n",time);
-  }
 
   //apodesmefsh twn domwn
   FreeInput(input);
+  JSDestroy(Sheduler);
   FreeHash(H);
   free(temp);
   free(model.weight_array);

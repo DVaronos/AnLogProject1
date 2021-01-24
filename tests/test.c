@@ -2,7 +2,7 @@
 #include "../hash.h"
 
 
-//----------Tests for TList----------\\
+//----------Tests for TList----------//
 
 void test_Tcreate(void){
   TList* T=CreateTList();
@@ -54,7 +54,7 @@ void test_Tfind(void){
 }
 
 
-//----------Tests for CList----------\\
+//----------Tests for CList----------//
 
 void test_Ccreate(void){
   CList* C=CreateCList();
@@ -100,7 +100,7 @@ void test_Cinsert(void){
 
 
 
-//----------Tests for NList----------\\
+//----------Tests for NList----------//
 
 
 void test_Ncreate(void){
@@ -143,7 +143,7 @@ void test_Ninsert(void){
   FreeeTList(D);
 }
 
-//----------Tests for WHash----------\\
+//----------Tests for WHash----------//
 
 
 void test_WHcreate(void){
@@ -175,7 +175,7 @@ void test_WHinsert(void){
 }
 
 
-//----------Tests for HVector----------\\
+//----------Tests for HVector----------//
 
 
 void test_HVcreate(void){
@@ -199,7 +199,7 @@ void test_HVinsert(void){
 }
 
 
-//----------Tests for Hash----------\\
+//----------Tests for Hash----------//
 
 
 void test_Hcreate(void){
@@ -241,7 +241,7 @@ void test_Hinsert(void){
 }
 
 
-//----------Tests for LHash----------\\
+//----------Tests for LHash----------//
 
 void test_LHcreate(void){
   LHash* H=LHashCreate(20);
