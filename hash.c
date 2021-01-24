@@ -550,7 +550,7 @@ LHash* Readjson(char* filename,LHash* H,LHash* Common,WHash** L){ //Diavazei to 
 		// word=strtok(line,symbols);	//alliws diavaze lekseis apo thn arxh
 
 		while(word!=NULL){ //Gia kathe leksi tis gramhs
-			if(strlen(word)>1)
+			if(strlen(word)>2)
 			{
 				// printf("%s\n", word);
 				count++;
