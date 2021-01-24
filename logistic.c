@@ -183,7 +183,7 @@ Model Training(Model model,Input* input,Hash* H,JobSheduler* Sheduler){
 			array[curr][i].b=model.b;
 			array[curr][i].input=input;
 			array[curr][i].start=start;
-			start+=1024;
+			start+=1000;
 			if(start>=input->size) start=input->size;
 			array[curr][i].end=start;
 			start++;
@@ -211,7 +211,6 @@ Model Training(Model model,Input* input,Hash* H,JobSheduler* Sheduler){
 		curr++;
 	}
 	JSWaitalltasks(Sheduler);
-	printf("telooos\n" );
 	for(int r=0 ; r<msize ; r++){
 		if(r<curr){
 			for(int t=0 ; t<Sheduler->num ; t++){
@@ -291,7 +290,7 @@ void Testing(char* filename,Model model,Hash* H){
 	 double cor;
    cor=1-p;
    sum++;
-   if(cor>0.4){
+   if(cor>0.35){
      if(!match) correct++;
    }else{
      if(match)correct++;
@@ -380,11 +379,8 @@ void TestAndAdd(Hash* H,Model model,JobSheduler* Sheduler,Input** input,double t
 	Job* job;
 	int i,sum,who=0,start=1,msize=10,curr=0;
 	TestStruct** current=malloc(sizeof(TestStruct*)*msize);
-	//HVector** vectors;
 	NList** nodes;
-	//char** names;
 	MakeArrays(H,&sum,&nodes);
-	printf("einai %d\n",sum );
 	while(who<(sum-1)){
 		if(curr<msize){
 	    current[curr]=malloc(sizeof(TestStruct)*Sheduler->num);
@@ -396,7 +392,7 @@ void TestAndAdd(Hash* H,Model model,JobSheduler* Sheduler,Input** input,double t
 		for(i=0 ; i<Sheduler->num ; i++){
 			current[curr][i].who=who;
 			current[curr][i].start=start;
-			start+=512;
+			start+=1000;
 			if(start>=(sum-1)) start=sum-1;
 			current[curr][i].end=start;
 			current[curr][i].b=model.b;
@@ -411,9 +407,7 @@ void TestAndAdd(Hash* H,Model model,JobSheduler* Sheduler,Input** input,double t
 			JSAddWork(Sheduler,job);
 			start++;
 			if(start==sum){
-				//printf("telos me to %d ",who );
 				who++;
-				//printf("paw sto %d\n",who );
 				if(who==sum-1) break;
 				start=who+1;
 			}
@@ -423,18 +417,11 @@ void TestAndAdd(Hash* H,Model model,JobSheduler* Sheduler,Input** input,double t
 	}
 
 	JSWaitalltasks(Sheduler);
-	// printf("teloss me %d\n",who );
 	for(int k=0 ; k<curr ; k++){
 		free(current[k]);
 	}
 	free(current);
-	//for(int r=0 ; r<sum ; r++){
-		//free(nodes[r]);
-	//}
 	free(nodes);
-	//free(vectors);
-	printf("vika meee %d\n",who );
-
 }
 
 void TestData(void* args){
@@ -474,22 +461,17 @@ void TestData(void* args){
 
 					Con=VectorConcat(F,S,1000);
 
-				//	printf("mpikaa: %d ",argument->input->size);
 					argument->input->Cons=realloc(argument->input->Cons, (argument->input->size+1)*sizeof(HVector*));
 	 				argument->input->Cons[argument->input->size] = Con;
 
 					argument->input->matches=realloc(argument->input->matches, (argument->input->size+1)*sizeof(int));
 	 				argument->input->matches[argument->input->size] = ismatch;
 					argument->input->size++;
-					//printf("vgenwww %d \n",argument->input->size );
 					pthread_mutex_unlock(&(argument->Sheduler->lock)); //Klidoma tou mutex
 
 				}
 		}
 	}
-
-
-	// if(argument->end==argument->sum) printf("telos me to %d\n",argument->who );
 }
 
 
@@ -523,21 +505,19 @@ void MakeArrays(Hash* H,int* s,NList*** nodes){
 }
 
 Model RepetitiveTaining(Input* input,Hash* H,JobSheduler* Sheduler){
-	int size = H->Head->Next->vec_size,ep=0;
+	int size = H->Head->Next->vec_size,ep=1;
 	Model model;
-	double threshold=0.01,stepvalue=0.09;
+	double threshold=0.1,stepvalue=0.1;
 	model.array_size=2*size;
   model.weight_array=malloc(sizeof(double)*(model.array_size));
   memset(model.weight_array, 0,(model.array_size)*sizeof(double));
 	model.b=0;
 	while (threshold <= 0.3){
 		model = Training(model,input,H,Sheduler);
-		printf("sthn %d epanalipsh me %d input size :",ep,input->size);
-		Testing("Testing.csv",model,H);
+		printf("Just finished the training for %d time\n",ep);
 		TestAndAdd(H,model,Sheduler,&input,threshold);
-		threshold += stepvalue;
+		threshold+=stepvalue;
 		ep++;
-		if(ep==2) threshold=0.3;
 	}
 	return model;
 }
