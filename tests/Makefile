@@ -1,8 +1,8 @@
 test: test.o  ../hash.o ../list.o
-	gcc -Wall -o test test.o ../hash.o ../list.o  -lm
+	gcc -Wall -g -o test test.o ../hash.o ../list.o  -lm
 
 tect.o: test.c acutest.h ../logistic.h
-	gcc -Wall -c test.c
+	gcc -Wall -g -c test.c
 
 run:
 	./test

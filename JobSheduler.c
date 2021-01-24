@@ -4,10 +4,12 @@
 #include "JobSheduler.h"
 
 
-//--------------------Sinartiseis gia thn domh Job-----------------------------\\
+//--------------------Sinartiseis gia thn domh Job-----------------------------//
 
 Job* JobCreate(tfunc func,void* arg){//Dimiourgei ena neo JOb
     Job* job;
+
+    if(func==NULL) return NULL;
 
     job=(Job*)malloc(sizeof(Job));  //Desmefsth tou xwrou
     job->func=func; //Anathesi ths routinas
@@ -21,11 +23,12 @@ void JobDestroy(Job* job){ //Apodesmevi ena job
 }
 
 
-//--------------------Sinartiseis gia thn domh JobSheduler-----------------------------\\
+//--------------------Sinartiseis gia thn domh JobSheduler-----------------------------//
 
 
 Job* JSGetWork(JobSheduler* Sheduler){  //Epistrefi to pio palio Job
   Job* job;
+
   job=Sheduler->First;
   if(job==NULL) return NULL;
 
@@ -80,8 +83,13 @@ void JSAddWork(JobSheduler* Sheduler,Job* job){ //Eisagi ena neo Job sthn oura
 void JSWaitalltasks(JobSheduler* Sheduler){ //Perimenei na teliosoun ola ta nimata
 
   pthread_mutex_lock(&(Sheduler->lock));
-  while ((Sheduler->threadswork && Sheduler->working) || ((Sheduler->working==0) && Sheduler->threadsnum)) //Oso iparxoun nimata pou litourgoun
-    pthread_cond_wait(&(Sheduler->thworking), &(Sheduler->lock)); //Perimene mexri na teliosi to nima
+  while(1){
+    if (((Sheduler->working==0) && (Sheduler->threadsnum!=0)) ||((Sheduler->threadswork!=0) && (Sheduler->working!=0)) ){ //Oso iparxoun nimata pou litourgoun
+      pthread_cond_wait(&(Sheduler->thworking), &(Sheduler->lock)); //Perimene mexri na teliosi to nima
+    }else{
+      break;
+    }
+  }
   pthread_mutex_unlock(&(Sheduler->lock));
 }
 
@@ -114,7 +122,7 @@ void JSDestroy(JobSheduler* Sheduler){  //Katastrofh tou Sheduler
 }
 
 void* Worker(void* arg){ //I sinarthsh pou trexei kathe nima kai mesw afths ektelite to kathe diathesimo Job
-  JobSheduler* Sheduler=arg;
+  JobSheduler* Sheduler=(void*)arg;
   Job* job;
 
   while (1) {
@@ -135,7 +143,7 @@ void* Worker(void* arg){ //I sinarthsh pou trexei kathe nima kai mesw afths ekte
 
     pthread_mutex_lock(&(Sheduler->lock));
     Sheduler->threadswork--;
-    if (Sheduler->threadswork== 0 && Sheduler->First == NULL && Sheduler->working) //Ean den iparxei kapio job den trexei kanena nima enhmerwse
+    if ((Sheduler->threadswork==0) && (Sheduler->First==NULL) && (Sheduler->working==1)) //Ean den iparxei kapio job den trexei kanena nima enhmerwse
           pthread_cond_signal(&(Sheduler->thworking));
     pthread_mutex_unlock(&(Sheduler->lock));
   }

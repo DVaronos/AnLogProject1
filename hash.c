@@ -4,7 +4,7 @@
 #include <math.h>
 #include "hash.h"
 
-//--------------------Sinartiseis gia thn domh Hash-----------------------------\\
+//--------------------Sinartiseis gia thn domh Hash-----------------------------//
 
 int hash(int id,int size){
   id^= (id << 13);
@@ -143,39 +143,6 @@ void HashConect(Hash* H,char* first,char* second,int match){ /*Eisagei enan neo 
 }
 
 
-int CheckIfOpposite (Hash* H, char* first, char* second)
-{
-	NList* L;
-	int i=0,j=0,in;
-	char name[40];
-	while(first[i]!='/'){//Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
-	  i++;
-	}
-	i+=2;//pigeno to i sthn thesh pou arxizei o arithmos tou proiontos
-	while(i<strlen(first)){
-	   name[j]=first[i];
-	   j++;
-	   i++;
-	}
-	name[j]='\0';
-	in=atoi(name);//apothievo ton arithmo tou proiontos ston int in
-	int index=hash(in,H->size);
-	L=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
-
-	while(L->Next!=NULL){	//Vrisko ton komvo ston opio einai apothikevmeno to product
-		L=L->Next;
-		if(!strcmp(L->camera,first)){
-				break;
-		}
-	}
-	if(L == NULL)	//an den vre8hke to 1o proion
-		return 0;
-	if( SearchDiffList(L->clique->Diffrend, second) == 0)	//an den einai sthn lista me tis diaforetikes cameres
-		return 0;
-	else	//an einai opposites
-		return 1;
-}
-
 void HashTransfer(Hash* H,FILE* csvfile){//Metaferi ta proionta poy teriazoun se ena csv arxio
   NList *L;
   TList* Transfered=CreateTList();
@@ -195,6 +162,35 @@ void HashDiff(Hash* H,FILE* csvfile){//Metaferi ta dedomena pou den teriazoun se
 		DiffNList(L,Transfered,csvfile);
 	}
   FreeTList(Transfered);
+}
+
+CList** CheckIfOpposite (Hash* H, char* first){
+	NList* L;
+	int i=0,j=0,in;
+	char name[40];
+//  printf("mpika sthn chek\n" );
+	while(first[i]!='/'){//Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
+	  i++;
+	}
+	i+=2;//pigeno to i sthn thesh pou arxizei o arithmos tou proiontos
+	while(i<strlen(first)){
+	   name[j]=first[i];
+	   j++;
+	   i++;
+	}
+	name[j]='\0';
+  //printf("ok to onoma\n" );
+	in=atoi(name);//apothievo ton arithmo tou proiontos ston int in
+	int index=hash(in,H->size);
+	L=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
+  //printf("paww na thselarw thn L\n" );
+	while(L->Next!=NULL){	//Vrisko ton komvo ston opio einai apothikevmeno to product
+		L=L->Next;
+		if(!strcmp(L->camera,first)){
+        return &(L->clique);
+		}
+	}
+  return NULL;
 }
 
 
@@ -256,9 +252,6 @@ WHash* HashFind(Hash* H,char* word){
   return NULL;
 }
 
-
-
-
 Hash* HashReplaceSpear(Hash* H,char* word,WHash* Spear){  //Antikathistw to WHash ths cameras me onoma word
   NList *L;
 	int i=0,j=0,in;
@@ -284,16 +277,17 @@ Hash* HashReplaceSpear(Hash* H,char* word,WHash* Spear){  //Antikathistw to WHas
       return H;
     }
   }
+  return NULL;
 }
 
-//--------------------Sinartiseis gia thn domh LHash-----------------------------\\
+//--------------------Sinartiseis gia thn domh LHash-----------------------------//
 
 
 
 int hash1(char *str,int size){
   int hash = 5381;
   int c;
-  while (c = *str++)
+  while ((c = *str++))
     hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
   return abs(hash % size);;
@@ -317,7 +311,7 @@ LHash* LHashCreate(int size){ //Dimiourgei ena neo LHashTable megetous size
 
 
 LHash* LHashInsert(LHash* H,char* camera){ /*Eisagei enan neo product sto LHashTable*/
-	int j=0,index,exist=0,r=0;
+	int j=0,index,exist=0;
 
   while(1){ //Evresi tou bucket pou tha paei to neo product
     if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish hash
@@ -349,7 +343,7 @@ LHash* LHashInsert(LHash* H,char* camera){ /*Eisagei enan neo product sto LHashT
 
 LHash* Lrehash(LHash* H){
   LHash*  Temp;
-  int i,index,j,exist;
+  int i,index,j;
   Temp=(LHash* )malloc( (H->size*2) *  sizeof(LHash) ); //Dimiourgo ena neo HasTable me thn diplasia xoritikotita
   Temp->size=H->size * 2;
   Temp->count=H->count;
@@ -385,7 +379,7 @@ LHash* Lrehash(LHash* H){
   return H;
 }
 
-LHash* LHashPrint(LHash* H){  //Ektiponei to Leksilogio
+void LHashPrint(LHash* H){  //Ektiponei to Leksilogio
   int i,c=0;
   for(i=0 ; i<H->size ; i++){
     if(H[i].word!=NULL){
@@ -396,7 +390,6 @@ LHash* LHashPrint(LHash* H){  //Ektiponei to Leksilogio
 }
 
 void LHashTfIdf(LHash* Lek,double count){ //Dimiourgei ena vector gia kathe camera
-	NList *L;
   double t;
   int wc=0;
 	for(int i=0 ; i<Lek->size ; i++){  //Gia kathe bucket tou leksilogiou
@@ -438,7 +431,7 @@ LHash* NMostLHash(LHash* H,int n){ //Epistrefei ena Hash pou periexei mono tis n
   if(n>H->size) n=H->size;
   H=LHashSort(H,0,H->size);
   LHash*  Temp;
-  int i,index,j,exist;
+  int i;
   Temp=(LHash* )malloc( n *  sizeof(LHash) ); //Dimiourgo ena neo HasTable me n size
   Temp->size=n;
   Temp->count=n;
@@ -518,7 +511,7 @@ void FreeLHash(LHash* H){   //apodesmefsth tou Hash
 
 
 LHash* LHashIncreaseTf(LHash* H,char* word,double tf){
-  int j=0,index,exist=0;
+  int j=0,index;
 
   while(1){
     if(!j){
@@ -546,7 +539,6 @@ LHash* Readjson(char* filename,LHash* H,LHash* Common,WHash** L){ //Diavazei to 
 
   char symbols[] =  " /,\\,\n,[,],(,),*,&,^,%,$,#,@,!,:,;,<,>,`,~,+,_,-,=,{,}|,\",.," " ";  //Ta simvolia ta opia tha xwrizoun tis lekseis
   (*L)=CreateWHash(200);
-  char c;
   char line[250];
   char* word;
   int count=0;

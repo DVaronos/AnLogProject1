@@ -1,20 +1,20 @@
 sigmod : main.o logistic.o list.o hash.o JobSheduler.o
-	gcc -o sigmod main.o logistic.o list.o hash.o JobSheduler.o -lm -pthread
+	gcc -Wall -g -o sigmod main.o logistic.o list.o hash.o JobSheduler.o -lm -pthread
 
 main.o : main.c logistic.h JobSheduler.h
-	gcc -c main.c
+	gcc -Wall -g -c main.c
 
 logistic.o : logistic.c logistic.h
-	gcc -c logistic.c
+	gcc -Wall -g -c logistic.c
 
 hash.o : hash.c hash.h
-	gcc -c hash.c
+	gcc -Wall -g -c hash.c
 
 list.o : list.c list.h
-	gcc -c list.c
+	gcc -Wall -g -c list.c
 
 JobSheduler.o : JobSheduler.c JobSheduler.h
-	gcc -c JobSheduler.c
+	gcc -Wall -g -c JobSheduler.c
 
 run:
 	./sigmod $(ARGS)

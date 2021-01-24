@@ -5,8 +5,8 @@
 #include <math.h>
 #include "logistic.h"
 
-HVector* GetCameraVector(char* camera_id, Hash* H)
-{
+
+HVector* GetCameraVector(char* camera_id, Hash* H){
 	NList *L;
 	int i=0,j=0,in;
 	char name[20];
@@ -26,21 +26,21 @@ HVector* GetCameraVector(char* camera_id, Hash* H)
 	int index=hash(in,H->size);
 	L=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
 	L = L->Next;
-	while(L!=NULL)
-	{
+	while(L!=NULL){
 		if(strcmp(L->camera,camera_id) == 0)	return L->vector;
 		L=L->Next;
 	}
+	return NULL;
 }
 
 HVector* VectorConcat(HVector* F,HVector* S,int dif){
 	int size=(F->count)+(S->count),c=0;
-	size=size+size*0.3;
+	size+=(size*0.3);
 	HVector* C=CreateHVector(size);
 
 	int fr,se;
-	fr=HVSumValues(F);
-	se=HVSumValues(S);
+	fr=F->sum;
+	se=S->sum;
 	if(fr>se){//Eelgxo pio ap ta dio vectors tha mpei proto
 		c=0;
 		for(int i=0 ; i<F->size ; i++){	//Isago tis leksis tou protou vector
@@ -102,14 +102,14 @@ void FreeInput(Input* input)
 Input* InputMake(char* filename1,char* filename2,Hash* H){
 
 	FILE* fptr;
-	int   a,z,ismatch,size = H->Head->Next->vec_size,count=0;
-	char line[300];
-	char* first;
-	char* second;
-	char* token=NULL;
+  int   a,z,ismatch,size = H->Head->Next->vec_size,count=0;
+  char line[300];
+  char* first;
+  char* second;
+  char* token=NULL;
 	HVector* F;
-	HVector* S;
-	HVector* Con;
+  HVector* S;
+  HVector* Con;
 	Input* input=InputInit();
 
 	fptr = fopen(filename1, "r");	//Anigma tou protou arxiou(me tis thetikes sisxetiseis)
@@ -135,6 +135,7 @@ Input* InputMake(char* filename1,char* filename2,Hash* H){
 			second=strdup(token);
 			F=GetCameraVector(first,H);	//Pernoume to vector ths proths kameras
 			S=GetCameraVector(second,H);	//Pernoume to vector ths defterhs kameras
+			//printf("paw sta %s kai %s\n",first,second );
 			Con=VectorConcat(F,S,size);	//Ipologizoume to concatenation
 
 			input->Cons=realloc(input->Cons, (count+1)*sizeof(HVector*));
@@ -160,38 +161,95 @@ Input* InputMake(char* filename1,char* filename2,Hash* H){
 
 
 
-Model Training(Input* input,Hash* H){
+Model Training(Model model,Input* input,Hash* H,JobSheduler* Sheduler){
 
-	FILE* fptr;
-	int size = H->Head->Next->vec_size,tc=0,c=0;
-	double k,p,result;
-	Model model;
-	model.array_size=2*size;
-	model.weight_array=malloc(sizeof(double)*(model.array_size));
-	memset(model.weight_array, 0,(model.array_size)*sizeof(double));
-	model.b=0;
-	HVector* Con;
-	while(tc<3){	//H ekpedefsth twv varewn tha ginei 5 fores
-		tc++;
-		for(int i=0 ; i<input->size ; i++){
-				Con=input->Cons[i];
-      	p=Predict(model,Con);	//Ipologizoume thn provlepsh tou modelou
-			//	printf("gia to %do vrika p:%f\n",i,p );
-      	k=p-input->matches[i];	//Ipologizoume thn apoklhsh ths provlepshs
-				c=0;
-      	for(int j=0 ;  j<Con->size ; j++){	//Gia kathe varos
-					if(Con[j].key!=-1){
-						c++;
-						result=k*Con[j].value;	//Ipologizoume to ginomeno ths apoklishs epi thn timh tou concat se afthn thn diastash
-						model.weight_array[Con[j].key]=model.weight_array[Con[j].key]-0.6*result;
-						model.b = (double)(model.b +k)/(double)2;	//enimeronoume to b
-					}
-					if(c==Con->count) break;
-      	}
-    }
+  int   i,j,start=0,limit,msize=10,curr=0;
+	double w,b;
+	Job* job;
+	TrainStruct** array=malloc(sizeof(TrainStruct*)*msize);
+	while(start<input->size){
+		if(curr<msize){
+			array[curr]=malloc(sizeof(TrainStruct)*Sheduler->num);
+		}else{
+			msize+=10;
+			array=realloc(array,msize*sizeof(TrainStruct*));
+			array[curr]=malloc(sizeof(TrainStruct)*Sheduler->num);
+		}
+		for(i=0 ; i<Sheduler->num ; i++ ){
+			array[curr][i].w=malloc(model.array_size*sizeof(double));
+			for(j=0 ; j<model.array_size ; j++){
+				array[curr][i].w[j]=model.weight_array[j];
+			}
+			array[curr][i].b=model.b;
+			array[curr][i].input=input;
+			array[curr][i].start=start;
+			start+=1024;
+			if(start>=input->size) start=input->size;
+			array[curr][i].end=start;
+			start++;
+			job=JobCreate(JobTraining,(void*)(array[curr]+i));
+			JSAddWork(Sheduler,job);
+			if(start==((input->size)+1)) break;
+		}
+		JSWaitalltasks(Sheduler);
+		limit=i;
+		if(start==((input->size)+1)) limit++;
+		for(i=0 ; i<model.array_size ; i++){
+			w=0;
+			for(j=0 ; j<limit ; j++){
+				w+=array[curr][j].w[i];
+			}
+			w=w/limit;
+			model.weight_array[i]=w;
+		}
+		b=0;
+		for(i=0 ; i<limit ; i++){
+			b+=array[curr][i].b;
+		}
+		b=b/limit;
+		model.b=b;
+		curr++;
 	}
-  return model;
+	JSWaitalltasks(Sheduler);
+	printf("telooos\n" );
+	for(int r=0 ; r<msize ; r++){
+		if(r<curr){
+			for(int t=0 ; t<Sheduler->num ; t++){
+				if((r==(curr-1)) && (t==limit)) break;
+				free(array[r][t].w);
+			}
+			free(array[r]);
+		}
+
+	}
+	free(array);
+	return model;
 }
+
+
+void JobTraining(void *args){
+
+	TrainStruct* arg=(TrainStruct*)args;
+	int i,j,c;
+	double k,p,result;
+	HVector* Con;
+	for( i=arg->start ; i<arg->end ; i++){
+			Con=arg->input->Cons[i];
+    	p=Predict(&(arg->w),&(arg->b),Con);	//Ipologizoume thn provlepsh tou modelou
+    	k=p-(arg->input->matches[i]);	//Ipologizoume thn apoklhsh ths provlepshs
+			c=0;
+    	for( j=0 ;  j<Con->size ; j++){	//Gia kathe varos
+				if(Con[j].key!=-1){
+					c++;
+					result=k*Con[j].value;	//Ipologizoume to ginomeno ths apoklishs epi thn timh tou concat se afthn thn diastash
+					arg->w[Con[j].key]=arg->w[Con[j].key]-(0.6*result);
+					arg->b = (double)((arg->b) +k)/(double)2;	//enimeronoume to b
+				}
+				if(c==Con->count) break;
+    	}
+  }
+}
+
 
 void Testing(char* filename,Model model,Hash* H){
   FILE* fptr = fopen(filename, "r");
@@ -201,7 +259,7 @@ void Testing(char* filename,Model model,Hash* H){
   char* first;
   char* second;
   double p;
-  double correct=0,sum=0;;
+  double correct=0,sum=0;
   HVector* F;
   HVector* S;
   HVector* Con;
@@ -229,26 +287,14 @@ void Testing(char* filename,Model model,Hash* H){
    F=GetCameraVector(first,H);
    S=GetCameraVector(second,H);
    Con=VectorConcat(F,S,model.array_size/2);
-   p=Predict(model,Con);
+   p=Predict(&(model.weight_array),&(model.b),Con);
 	 double cor;
    cor=1-p;
    sum++;
-   if(cor>0.5){
-		 //printf("Gia %s kai %s exw einai %d kai exw %f kaiii %f\n",first,second,match,p,1-p );
-     if(!match){
-			 correct++;
-		//	printf("SOSTO:Gia %s kai %s exw einai %d kai exw %f\n",first,second,match,p );
-		 }else{
-			// printf("LATHOS:Gia %s kai %s exw einai %d kai exw %f\n",first,second,match,p );
-		 }
-
+   if(cor>0.4){
+     if(!match) correct++;
    }else{
-     if(match){
-			  correct++;
-				//printf("SOSTO:Gia %s kai %s exw einai %d kai exw %f\n",first,second,match,p );
-		}else{
-			//printf("LATHOS:Gia %s kai %s exw einai %d kai exw %f\n",first,second,match,p );
-		}
+     if(match)correct++;
    }
    free(first);
    free(second);
@@ -259,13 +305,14 @@ void Testing(char* filename,Model model,Hash* H){
 }
 
 
-double Fx(Model model,HVector* con){
-  double sum=model.b,wx;
+double Fx(double** w,double* b,HVector* con){
+  double wx,sum=*(b);
+	double* W=*w;
 	int c=0;
   for(int i=0; i<con->size ; i++){	//Ipologismos tou f(X)
 		if(con[i].key!=-1){
 			c++;
-			wx=model.weight_array[con[i].key]*con[i].value;
+			wx=W[con[i].key]*(con[i].value);
 			sum+=wx;
 		}
 		if(c==con->count) break;
@@ -273,169 +320,224 @@ double Fx(Model model,HVector* con){
   return sum;
 }
 
-double Predict(Model model,HVector* con){
-  double f=Fx(model,con);	//ipologizoume to f(x)
+double Predict(double** w,double* b,HVector* con){
+  double f=Fx(w,b,con);	//ipologizoume to f(x)
   double p = 1 / (1 + exp(-(f)));	//ipologizoume to p(f(x))
 	return p;
 }
 
+double Newpred(double* w,double b,HVector* F,HVector* S,int dif){
 
-void TestAllData(Hash* H,Model model){
-	NList* E;
-	NList* M;
-	HVector* F;
-  HVector* S;
-  HVector* Con;
+	int fr,se,c;
+	double wx,sum=b;
+
+	fr=F->sum;
+	se=S->sum;
+	if(fr>se){//Eelgxo pio ap ta dio vectors tha mpei proto
+		c=0;
+		for(int i=0 ; i<F->size ; i++){	//Isago tis leksis tou protou vector
+			if(F[i].key!=-1){
+				c++;
+				wx=w[F[i].key]*(F[i].value);
+				sum+=wx;
+			}
+			if(c==F->count) break;
+		}
+		c=0;
+		for(int i=0 ; i<S->size ; i++){	//Isago tis leksis tou defterou vectour me afksimeno to key kata dif
+			if(S[i].key!=-1){
+				c++;
+				wx=w[(S[i].key)+dif]*(S[i].value);
+				sum+=wx;
+			}
+			if(c==S->count) break;
+		}
+	}else{
+		c=0;
+		for(int i=0 ; i<S->size ; i++){
+			if(S[i].key!=-1){
+				c++;
+				wx=w[(S[i].key)]*(S[i].value);
+				sum+=wx;
+			}
+			if(c==S->count) break;
+		}
+		c=0;
+		for(int i=0 ; i<F->size ; i++){
+			if(F[i].key!=-1){
+				c++;
+				wx=w[(F[i].key)+dif]*(F[i].value);
+				sum+=wx;
+			}
+			if(c==F->count) break;
+		}
+	}
+	sum=1 / (1 + exp(-(sum)));	//ipologizoume to p(f(x))
+	return sum;
+}
+
+void TestAndAdd(Hash* H,Model model,JobSheduler* Sheduler,Input** input,double threshold){
+	Job* job;
+	int i,sum,who=0,start=1,msize=10,curr=0;
+	TestStruct** current=malloc(sizeof(TestStruct*)*msize);
+	//HVector** vectors;
+	NList** nodes;
+	//char** names;
+	MakeArrays(H,&sum,&nodes);
+	printf("einai %d\n",sum );
+	while(who<(sum-1)){
+		if(curr<msize){
+	    current[curr]=malloc(sizeof(TestStruct)*Sheduler->num);
+	  }else{
+	    msize+=10;
+	    current=realloc(current,msize*sizeof(TestStruct*));
+	    current[curr]=malloc(sizeof(TestStruct)*Sheduler->num);
+	  }
+		for(i=0 ; i<Sheduler->num ; i++){
+			current[curr][i].who=who;
+			current[curr][i].start=start;
+			start+=512;
+			if(start>=(sum-1)) start=sum-1;
+			current[curr][i].end=start;
+			current[curr][i].b=model.b;
+			current[curr][i].w=model.weight_array;
+			current[curr][i].threshold=threshold;
+			current[curr][i].input=*input;
+			current[curr][i].hash=H;
+			current[curr][i].Sheduler=Sheduler;
+			current[curr][i].nodes=nodes;
+			current[curr][i].sum=sum-1;
+			job=JobCreate(TestData,(void*)(current[curr]+i));
+			JSAddWork(Sheduler,job);
+			start++;
+			if(start==sum){
+				//printf("telos me to %d ",who );
+				who++;
+				//printf("paw sto %d\n",who );
+				if(who==sum-1) break;
+				start=who+1;
+			}
+		}
+		JSWaitalltasks(Sheduler);
+		curr++;
+	}
+
+	JSWaitalltasks(Sheduler);
+	printf("teloss me %d\n",who );
+	for(int k=0 ; k<curr ; k++){
+		free(current[k]);
+	}
+	free(current);
+	//for(int r=0 ; r<sum ; r++){
+		//free(nodes[r]);
+	//}
+	free(nodes);
+	//free(vectors);
+	printf("vika meee %d\n",who );
+
+}
+
+void TestData(void* args){
+	TestStruct* argument=(TestStruct*)args;
 	double p;
-	NList* T1;
-	NList* T2;
-	int ca=0;
-	for(int i=0 ; i<H->size ; i++){	//Gia kathe bucket-list tou Hash
-		E=(NList*)H[i].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
-		T1=E;
-		while(T1->Next!=NULL){	//Arxika elegxw ta dedonena ths Listas metaksi tous
-			T1=T1->Next;	//Gia kathe camera ths listas
-			if(T1->clique==NULL){	//Ean h kamera den anoikei se kapia klika
-				F=GetCameraVector(T1->camera,H);	//Apothikevo to vector ths cameras
-				T2=T1;
-				while(T2->Next!=NULL){	//Gia olou tous epomenous komvous ths listas
-					T2=T2->Next;
-					if(T2->clique==NULL){	//Ean h camera den anoikei se kapia klika kai den einai h idia me thn prohgoumeni
-						ca++;
-						S=GetCameraVector(T2->camera,H);	//Apothikevo to vector ths
-						Con=VectorConcat(F,S,model.array_size/2);	//Vrisko to concatenation
-						p=Predict(model,Con);	//Vrisko thn provlepsh
-						if(p<0.002 || p>0.998) printf("%d,%s me %s exoun %f\n",ca,T1->camera,T2->camera,p);
-						FreeHVector(Con);
+	int j,ismatch;
+	NList* N=argument->nodes[argument->who];
+	NList* Nother;
+	HVector* F=N->vector;
+	HVector* S;
+	HVector* Con;
+	for(j=(argument->start) ; j < (argument->end) ; j++){
+		Nother=argument->nodes[j];
+		S=Nother->vector;	//Apothikevo to vector ths
+		p=Newpred((argument->w),(argument->b),F,S,1000);	//Vrisko to concatenation
+		if((p<(argument->threshold)) || (p>(1-(argument->threshold)))){
+			if(p<(argument->threshold)){
+				ismatch=0;
+			}else{
+				ismatch=1;
+			}
+		 		if(SearchDiffList(N->clique,Nother->clique) == 0){	//an den uparxei hdh arnhtikh susxethsh
+					pthread_mutex_lock(&(argument->Sheduler->lock));
+					if( N->clique==NULL){
+						N->clique=CreateCList();
+						InsertCList(N->clique,N->camera,N);
 					}
+					if(Nother->clique==NULL){
+						Nother->clique=CreateCList();
+						InsertCList(Nother->clique,Nother->camera,Nother);
+					}
+					if(ismatch){ //Ean match ==1 ta proionta teriazoun
+						Nother->clique=AppendCList(N->clique,Nother->clique);
+				  }else{ //Ean match==0 ta proionta den teriazoun
+				    Diff(N->clique,Nother->clique);
+				  }
+
+					Con=VectorConcat(F,S,1000);
+
+				//	printf("mpikaa: %d ",argument->input->size);
+					argument->input->Cons=realloc(argument->input->Cons, (argument->input->size+1)*sizeof(HVector*));
+	 				argument->input->Cons[argument->input->size] = Con;
+
+					argument->input->matches=realloc(argument->input->matches, (argument->input->size+1)*sizeof(int));
+	 				argument->input->matches[argument->input->size] = ismatch;
+					argument->input->size++;
+					//printf("vgenwww %d \n",argument->input->size );
+					pthread_mutex_unlock(&(argument->Sheduler->lock)); //Klidoma tou mutex
+
 				}
-			}
-		}
-		for(int j=i+1 ; j<H->size ; j++){//Gia kathe epomenh bucket list
-			E=(NList*)H[i].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
-
-			while(E->Next!=NULL){ //Gia kathe komvo ths listas
-					E=E->Next;
-					if(E->clique==NULL){	//Ean h camera den anoikei se kapia klika
-						M=(NList*)H[j].Head;//pernw thn lista pou vriskete sto j bucket tou HashTable
-						F=GetCameraVector(E->camera,H);	//Vrisko to vector ths cameras
-						while(M->Next!=NULL){	//Gia kathe komvo ths defterhs listas
-							M=M->Next;
-							if(M->clique==NULL){ //Ean h camera den anoikei se kapia klika kai den einai h idia me thn prohgoumeni
-								ca++;
-						    S=GetCameraVector(M->camera,H); //Apothikevo to vector ths
-						    Con=VectorConcat(F,S,model.array_size/2); //Vrisko to concatenation
-								p=Predict(model,Con); //Vrisko thn provlepsh
-								if(p<0.002 || p>0.998) printf("%d,%s me %s exoun %f\n",ca,E->camera,M->camera,p);
-								FreeHVector(Con);
-							}
-						}
-					}
-			}
 		}
 	}
-	printf("Htan sinolo %d\n",ca);
+
+
+	if(argument->end==argument->sum) printf("telos me to %d\n",argument->who );
 }
 
-double Norm(Model model){	//Ipologismos ths normas tou vector  tou modleou
+
+void MakeArrays(Hash* H,int* s,NList*** nodes){
+	NList* N;
 	int sum=0;
-	for(int i=0 ; i<model.array_size ; i++){
-		sum+=model.weight_array[i]*model.weight_array[i];
+	for(int i=0 ; i<H->size ; i++){
+		N=(NList*)H[i].Head;
+    while(N->Next!=NULL){
+      N=N->Next;
+			if(N->clique==NULL){
+      	sum++;
+			}
+    }
 	}
-	return sqrt(sum);
+
+	NList** nl=malloc(sum*sizeof(NList*));
+	sum=0;
+	for(int i=0 ; i<H->size ; i++){
+		N=(NList*)H[i].Head;
+    while(N->Next!=NULL){
+      N=N->Next;
+			if(N->clique==NULL){
+				nl[sum]=N;
+      	sum++;
+			}
+    }
+	}
+	*s=sum;
+	*nodes=nl;
 }
 
-// =====================================
-
-Input TestAndAdd(Input* initial_input,Model* model, Hash* H, char* filename, float threshold)
-{
-	FILE* fptr = fopen(filename, "r");
-	int tcount, ismatch;
-	char line[300], *first, *second, *token=NULL;
-	double p, correct=0, sum=0;
-	HVector *F, *S;
-	HVector *Con;
-
-	while (fgets(line,sizeof(line),fptr)){//Diavazei to csv file grami grami
-	  token=strtok(line,",");
-	  if(!strcmp(token,"left_spec_id"))  continue;
-	  tcount=0;
-	  while(token!=NULL){//apothikefsi tou kathe stixoiou ths gramhs se metavlites
-	   tcount++;
-	   switch(tcount){
-		 case 1://ean tcount==1 tote to token isoute me to proto proion
-		   first=malloc(sizeof(char)*(strlen(token)+1));
-		   strcpy(first,token);
-		   break;
-		 case 2://ean tcount==2 tote to token isoute me to deftero proion
-		   second=malloc(sizeof(char)*(strlen(token)+1));
-		   strcpy(second,token);
-		   break;
-		   // den xreiazetai h 3h sthlh gt emeis 8a kanoume mono predict kai oxi elegxo me pragmatikh timh
-		 // case 3://Ean tcount==3 tote to token einai 0 h 1 analoga to an teriazoun ta proionta
-		 //   match=atoi(token);
-		 //   break;
-	   }
-	   token=strtok(NULL,",");
-	 }
-	 F=GetCameraVector(first,H);
-	 S=GetCameraVector(second,H);
-	 Con=VectorConcat(F,S,model->array_size/2);
-	 p=Predict(*model,Con);
-
-	 if(p<threshold)	//add as not match
-	 {
-		 ismatch = 0;
-		 if(CheckIfOpposite(H, first, second) == 0)	//an den uparxei hdh arnhtikh susxethsh
-		 {	HashConect(H, first, second, ismatch);
-			// pros8hkh tou neou vector sto palio input
-			initial_input->Cons=realloc(initial_input->Cons, (initial_input->size +1)*sizeof(HVector*));
-			initial_input->Cons[initial_input->size] = Con;
-
-			initial_input->matches= realloc(initial_input->matches, (initial_input->size +1)*sizeof(int));
-			initial_input->matches[initial_input->size] = ismatch;
-			initial_input->size++;}
-	 }
-	 else if(p> 1- threshold)	//add as match
-	 {
-		 ismatch = 1;
-		 if(CheckIfOpposite(H, first, second) == 0)
-		 {	HashConect(H, first, second, ismatch);
-			// pros8hkh tou neou vector sto palio input
-			initial_input->Cons=realloc(initial_input->Cons, (initial_input->size +1)*sizeof(HVector*));
-			initial_input->Cons[initial_input->size] = Con;
-
-			initial_input->matches= realloc(initial_input->matches, (initial_input->size +1)*sizeof(int));
-			initial_input->matches[initial_input->size] = ismatch;
-			initial_input->size++;}
-	 }
-
-
-	 free(first);
-	 free(second);
-   }
-   return *initial_input;
-}
-
-Model RepetitiveTaining(Input* initial_input, Hash* H, Input* test_set)
-{
-	int size = H->Head->Next->vec_size;
-	float threshold = 0.1;
-	float step_value = 0.2;
-	Input* training_set = initial_input;
-	Model* model = malloc(sizeof(Model));
-	// model initialization
-	model->array_size=2*size;
-	model->weight_array=malloc(sizeof(double)*(model->array_size));
-	memset(model->weight_array, 0,(model->array_size)*sizeof(double));
-	model->b=0;
-
-	while (threshold <= 0.5)
-	{
-		*model = Training(training_set, H);
-		*training_set = TestAndAdd(training_set, model, H, "Testing.csv", threshold);
-		threshold += step_value;
-
+Model RepetitiveTaining(Input* input,Hash* H,JobSheduler* Sheduler){
+	int size = H->Head->Next->vec_size,ep=0;
+	Model model;
+	double threshold=0.01,stepvalue=0.09;
+	model.array_size=2*size;
+  model.weight_array=malloc(sizeof(double)*(model.array_size));
+  memset(model.weight_array, 0,(model.array_size)*sizeof(double));
+	model.b=0;
+	while (threshold <= 0.3){
+		model = Training(model,input,H,Sheduler);
+		printf("sthn %d epanalipsh me %d input size :",ep,input->size);
+		Testing("Testing.csv",model,H);
+		TestAndAdd(H,model,Sheduler,&input,threshold);
+		threshold += stepvalue;
+		ep++;
+		if(ep==2) threshold=0.3;
 	}
-	return *model;
+	return model;
 }

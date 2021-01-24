@@ -1,5 +1,5 @@
 #include "hash.h"
-
+#include "JobSheduler.h"
 
 typedef struct inp{
 	HVector** Cons;
@@ -12,6 +12,27 @@ Input* InputMake(char* ,char* ,Hash* );
 
 void FreeInput(Input* );
 
+typedef struct ts{
+	int start;
+	int end;
+	double b;
+	double* w;
+	Input* input;
+}TrainStruct;
+
+typedef struct tes{
+	int start;
+	int end;
+	int who;
+	int sum;
+	double b;
+	double threshold;
+	double* w;
+	Hash* hash;
+	Input* input;
+	NList** nodes;
+	JobSheduler* Sheduler;
+}TestStruct;
 
 typedef struct Model
 {
@@ -25,14 +46,16 @@ HVector* GetCameraVector(char* , Hash* );
 HVector* VectorConcat(HVector* ,HVector* ,int );
 
 
-Model Training(Input*,Hash* );
-double Fx(Model ,HVector* );
-double Predict(Model ,HVector* );
-double Norm(Model );
 
-void TestAllData(Hash* ,Model );
+Model Training(Model ,Input* ,Hash* ,JobSheduler* );
+Model RepetitiveTaining(Input* ,Hash* ,JobSheduler* );
+
+double Fx(double** ,double*  ,HVector* );
+double Predict(double** ,double*  ,HVector* );
+double Newpred(double* ,double ,HVector* ,HVector* ,int );
+
+void TestAndAdd(Hash* ,Model ,JobSheduler* ,Input** ,double );
+void TestData(void *);
 void Testing(char* ,Model ,Hash* );
-
-// ------------------------------------
-Input TestAndAdd(Input* initial_input, Model* model, Hash* H, char* filename, float threshold);
-Model RepetitiveTaining(Input*, Hash* H, Input* test_set);
+void JobTraining(void* );
+void MakeArrays(Hash* ,int* ,NList*** );
