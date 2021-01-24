@@ -537,39 +537,40 @@ LHash* Readjson(char* filename,LHash* H,LHash* Common,WHash** L){ //Diavazei to 
     perror("Fopen");
   }
 
-  char symbols[] =  " /,\\,\n,[,],(,),*,&,^,%,$,#,@,!,:,;,<,>,`,~,+,_,-,=,{,}|,\",.," " ";  //Ta simvolia ta opia tha xwrizoun tis lekseis
+  char symbols[] =  " /,\\,\n,[,],(,),*,&,^,%,$,#,@,!,:,;,<,>,`,~,+,_,-,=,{,}|,\",.," "";  //Ta simvolia ta opia tha xwrizoun tis lekseis
   (*L)=CreateWHash(200);
   char line[250];
   char* word;
   int count=0;
 
+	while(fgets(line, sizeof(line),fp)){  //Diavazei to json grami gami
 
- 	while(fgets(line, sizeof(line),fp)){  //Diavazei to json grami gami
-	  word = strtok(line, """:");
-	  word = strtok(NULL, symbols);
+		word = strtok(line, """:");		//skip labels
+		word=strtok(NULL,symbols);
+		// word=strtok(line,symbols);	//alliws diavaze lekseis apo thn arxh
 
-			// word=strtok(line,symbols);
-	    while(word!=NULL){ //Gia kathe leksi tis gramhs
-			if(strlen(word)>2)
+		while(word!=NULL){ //Gia kathe leksi tis gramhs
+			if(strlen(word)>1)
 			{
+				// printf("%s\n", word);
 				count++;
-				for(int j=0; j<=strlen(word);j++){  //Metatrepei ta kegalea se peza
+				for(int j=0; j<=strlen(word);j++){  //Metatrepei ta kefalea se peza
 					if(word[j]>=65 && word[j]<=90)	word[j]=word[j]+32;
 				}
 				if(!LHashFind(Common,word)){  //Ean h leksh den einai mia apo tis common
 					if(!WHashFind(*L,word))  H=LHashInsert(H,word); //Ean den exw isagi thn leksh allh fora sto stigekrimeno json
 					*L=InsertWHash(*L,word);
 				}
-				word=strtok(NULL,symbols);
 			}
+			word=strtok(NULL,symbols);
 		}
 	}
 	fclose(fp);
 	(*L)=WHashTF(*L); //Ipoligismos twn tf gia kathe leksh tou TF
 	for(int i=0 ; i<(*L)->size ; i++){
 		if((*L)[i].word!=NULL){
-		  H=LHashIncreaseTf(H,(*L)[i].word,(*L)[i].tfidf);
+			H=LHashIncreaseTf(H,(*L)[i].word,(*L)[i].tfidf);
 		}
 	}
-	return H;
+return H;
 }
