@@ -274,7 +274,7 @@ int main( int argc, char *argv[] ){
   free(wfile);
   free(dd);
   closedir(directory);
-  // remove("Testing.csv");
+  remove("Testing.csv");
   remove("Validation.csv");
 
   t2 = (double) times(&tb2);
