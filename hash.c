@@ -168,7 +168,6 @@ CList** CheckIfOpposite (Hash* H, char* first){
 	NList* L;
 	int i=0,j=0,in;
 	char name[40];
-//  printf("mpika sthn chek\n" );
 	while(first[i]!='/'){//Vrisko to simio pou teliwnei to onoma ths istoselidas tou proiontos
 	  i++;
 	}
@@ -179,11 +178,9 @@ CList** CheckIfOpposite (Hash* H, char* first){
 	   i++;
 	}
 	name[j]='\0';
-  //printf("ok to onoma\n" );
 	in=atoi(name);//apothievo ton arithmo tou proiontos ston int in
 	int index=hash(in,H->size);
 	L=(NList*)H[index].Head;//pernw thn lista pou vriskete sto index bucket tou HashTable
-  //printf("paww na thselarw thn L\n" );
 	while(L->Next!=NULL){	//Vrisko ton komvo ston opio einai apothikevmeno to product
 		L=L->Next;
 		if(!strcmp(L->camera,first)){
@@ -290,7 +287,7 @@ int hash1(char *str,int size){
   while ((c = *str++))
     hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
-  return abs(hash % size);;
+  return abs(hash % size);
 }
 
 
@@ -311,13 +308,15 @@ LHash* LHashCreate(int size){ //Dimiourgei ena neo LHashTable megetous size
 
 
 LHash* LHashInsert(LHash* H,char* camera){ /*Eisagei enan neo product sto LHashTable*/
-	int j=0,index,exist=0;
+  int index,exist=0,j=0;
 
   while(1){ //Evresi tou bucket pou tha paei to neo product
     if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish hash
       index=hash1(camera,H->size);
+      j=1;
     }else{
-      index=(index+j*j)%(H->size);
+      index++;
+      if(index>=H->size) index-=H->size;
     }
     if(H[index].word==NULL){  //Ean einai adio to bucket tha isagoume se afto thn camera
       break;
@@ -325,7 +324,6 @@ LHash* LHashInsert(LHash* H,char* camera){ /*Eisagei enan neo product sto LHashT
       exist=1;
       break;
     }
-    j++;
   }
   if(!exist){ //Ean h camera den iparxei idi
     H->count++;
@@ -360,13 +358,14 @@ LHash* Lrehash(LHash* H){
       while(1){ //Evresi tou bucket pou tha paei to neo product
         if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish hash
           index=hash1(H[i].word,Temp->size);
+          j=1;
         }else{
-          index=(index+j*j)%(Temp->size);
+          index++;
+          if(index>=Temp->size) index-=Temp->size;
         }
         if(Temp[index].word==NULL){  //Ean einai adio to bucket tha isagoume se afto thn camera
           break;
         }
-        j++;
       }
       Temp[index].word=strdup(H[i].word);
       Temp[index].wordperj=H[i].wordperj;
@@ -406,13 +405,15 @@ void LHashTfIdf(LHash* Lek,double count){ //Dimiourgei ena vector gia kathe came
 
 
 int LHashFind(LHash* H,char* camera){ //Epistrefei 1 an iparxei  leksh sto hash allios 0
-	int j=0,index,exist=0;
+  int index,exist=0,j=0;
 
   while(1){
     if(!j){
       index=hash1(camera,H->size);
+      j=1;
     }else{
-      index=(index+j*j)%(H->size);
+      index++;
+      if(index>=H->size) index-=H->size;
     }
     if(H[index].word==NULL){
       break;
@@ -420,8 +421,6 @@ int LHashFind(LHash* H,char* camera){ //Epistrefei 1 an iparxei  leksh sto hash 
       exist=1;
       break;
     }
-    j++;
-    if(j==H->size) break;
   }
   return exist;
 }
@@ -511,13 +510,15 @@ void FreeLHash(LHash* H){   //apodesmefsth tou Hash
 
 
 LHash* LHashIncreaseTf(LHash* H,char* word,double tf){
-  int j=0,index;
+  int index,j=0;
 
   while(1){
     if(!j){
       index=hash1(word,H->size);
+      j=1;
     }else{
-      index=(index+j*j)%(H->size);
+      index++;
+      if(index>=H->size) index-=H->size;
     }
     if(H[index].word==NULL){
       break;
@@ -525,8 +526,6 @@ LHash* LHashIncreaseTf(LHash* H,char* word,double tf){
       H[index].tfcount=H[index].tfcount+tf;
       break;
     }
-    j++;
-    if(j==H->size) break;
   }
   return H;
 }
@@ -547,12 +546,10 @@ LHash* Readjson(char* filename,LHash* H,LHash* Common,WHash** L){ //Diavazei to 
 
 		word = strtok(line, """:");		//skip labels
 		word=strtok(NULL,symbols);
-		// word=strtok(line,symbols);	//alliws diavaze lekseis apo thn arxh
 
 		while(word!=NULL){ //Gia kathe leksi tis gramhs
 			if(strlen(word)>2)
 			{
-				// printf("%s\n", word);
 				count++;
 				for(int j=0; j<=strlen(word);j++){  //Metatrepei ta kefalea se peza
 					if(word[j]>=65 && word[j]<=90)	word[j]=word[j]+32;

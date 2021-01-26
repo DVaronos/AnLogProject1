@@ -20,19 +20,7 @@ typedef struct ts{
 	Input* input;
 }TrainStruct;
 
-typedef struct tes{
-	int start;
-	int end;
-	int who;
-	int sum;
-	double b;
-	double threshold;
-	double* w;
-	Hash* hash;
-	Input* input;
-	NList** nodes;
-	JobSheduler* Sheduler;
-}TestStruct;
+
 
 typedef struct Model
 {
@@ -46,16 +34,30 @@ HVector* GetCameraVector(char* , Hash* );
 HVector* VectorConcat(HVector* ,HVector* ,int );
 
 
-
-Model Training(Model ,Input* ,Hash* ,JobSheduler* );
-Model RepetitiveTaining(Input* ,Hash* ,JobSheduler* );
+Model* ModelIinit(int );
+Model* Training(Model* ,Input* ,Hash* ,JobSheduler* );
+Model* RepetitiveTaining(Input* ,Hash* ,JobSheduler* );
 
 double Fx(double** ,double*  ,HVector* );
 double Predict(double** ,double*  ,HVector* );
 double Newpred(double* ,double ,HVector* ,HVector* ,int );
 
-void TestAndAdd(Hash* ,Model ,JobSheduler* ,Input** ,double );
+void TestAndAdd(Hash* ,Model* ,JobSheduler* ,Input** ,double );
 void TestData(void *);
-void Testing(char* ,Model ,Hash* );
+void Testing(char* ,Model* ,Hash* );
 void JobTraining(void* );
 void MakeArrays(Hash* ,int* ,NList*** );
+void FreeModel(Model* );
+
+typedef struct tes{
+	int start;
+	int end;
+	int who;
+	int sum;
+	double threshold;
+	Model* model;
+	Hash* hash;
+	Input* input;
+	NList** nodes;
+	JobSheduler* Sheduler;
+}TestStruct;

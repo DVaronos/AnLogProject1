@@ -84,7 +84,7 @@ void JSWaitalltasks(JobSheduler* Sheduler){ //Perimenei na teliosoun ola ta nima
 
   pthread_mutex_lock(&(Sheduler->lock));
   while(1){
-    if (((Sheduler->working==0) && (Sheduler->threadsnum!=0)) ||((Sheduler->threadswork!=0) && (Sheduler->working!=0)) ){ //Oso iparxoun nimata pou litourgoun
+    if ( ((Sheduler->working==0) && (Sheduler->threadsnum!=0)) || ( ((Sheduler->threadswork!=0) && (Sheduler->working!=0) ) || (Sheduler->First!=NULL) ) ){ //Oso iparxoun nimata pou litourgoun
       pthread_cond_wait(&(Sheduler->thworking), &(Sheduler->lock)); //Perimene mexri na teliosi to nima
     }else{
       break;

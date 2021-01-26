@@ -15,7 +15,7 @@ int main( int argc, char *argv[] ){
     ticspersec = (double) sysconf(_SC_CLK_TCK);
     t1 = (double) times(&tb1);
 
-   JobSheduler* Sheduler= JSInit(16);
+   JobSheduler* Sheduler= JSInit(32);
    DIR* directory;
    DIR* indirectory;
    struct dirent* new_directory;
@@ -258,7 +258,7 @@ int main( int argc, char *argv[] ){
   fclose(dcsv);
   printf("The creation of the Same.csv and Diffrend.csv files just finished\n");
   Input* input=InputMake("Same.csv","Diffrend.csv", H);
-  Model model;
+  Model* model;
   model=RepetitiveTaining(input,H,Sheduler);
   printf("The training of the model just finished\n");
 
@@ -270,7 +270,7 @@ int main( int argc, char *argv[] ){
   JSDestroy(Sheduler);
   FreeHash(H);
   free(temp);
-  free(model.weight_array);
+  FreeModel(model);
   free(wfile);
   free(dd);
   closedir(directory);

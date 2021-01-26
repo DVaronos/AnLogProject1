@@ -380,13 +380,15 @@ WHash* CreateWHash(int size){ //Dimiourgia enos neou WHash
 }
 
 WHash* InsertWHash(WHash* H,char* word){	//Eisagei ena neo value stho WHash
-	int j=0,index,exist=0;
+	int index,exist=0,j=0;
 
   while(1){ //Evresi tou bucket pou tha paei to neo product
     if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish whashf
       index=whashf(word,H->size);
+			j=1;
     }else{
-      index=(index+j*j)%(H->size);
+      index++;
+			if(index>=H->size) index-=H->size;
     }
     if(H[index].word==NULL){  //Ean einai adio to bucket tha isagoume se afto thn leksh
       break;
@@ -394,7 +396,6 @@ WHash* InsertWHash(WHash* H,char* word){	//Eisagei ena neo value stho WHash
       exist=1;
       break;
     }
-    j++;
   }
   if(!exist){ //Ean h leksh den iparxei idi
     H->count++;
@@ -427,13 +428,14 @@ WHash* Wrehash(WHash* H){
       while(1){ //Evresi tou bucket pou tha paei to neo product
         if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish hash
           index=whashf(H[i].word,Temp->size);
+					j=1;
         }else{
-          index=(index+j)%(Temp->size);
+          index++;
+					if(index>=Temp->size) index-=Temp->size;
         }
         if(Temp[index].word==NULL){  //Ean einai adio to bucket tha isagoume se afto thn camera
           break;
         }
-        j++;
       }
 			//Antigrafi twn dedomenwn
       Temp[index].word=strdup(H[i].word);
@@ -478,13 +480,15 @@ int WHashCount(WHash* H){	//Ipologizei to sinoliko athrisma twn leksewn mias cam
 
 
 int WHashFind(WHash* H,char* word){ //Epistrefei 1 an iparxei  leksh sto hash allios 0
-	int j=0,index,exist=0;
+	int index,exist=0,j=0;
 
   while(1){
     if(!j){
       index=whashf(word,H->size);
+			j=1;
     }else{
-      index=(index+j*j)%(H->size);
+      index++;
+			if(index>=H->size) index-=H->size;
     }
     if(H[index].word==NULL){
       break;
@@ -492,8 +496,6 @@ int WHashFind(WHash* H,char* word){ //Epistrefei 1 an iparxei  leksh sto hash al
       exist=1;
       break;
     }
-    j++;
-    if(j==H->size) break;
   }
   return exist;
 }
@@ -501,13 +503,15 @@ int WHashFind(WHash* H,char* word){ //Epistrefei 1 an iparxei  leksh sto hash al
 
 
 double GiveTfIdf(WHash* H,char* camera){ //Epistrefei thn timh tou tf an iparxei h leksh allios 0
-	int j=0,index;
+	int index,j=0;
 
   while(1){
     if(!j){
       index=whashf(camera,H->size);
+			j=1;
     }else{
-      index=(index+j*j)%(H->size);
+      index++;
+			if(index>=H->size) index-=H->size;
     }
     if(H[index].word==NULL){
       break;
@@ -515,8 +519,6 @@ double GiveTfIdf(WHash* H,char* camera){ //Epistrefei thn timh tou tf an iparxei
       return H[index].tfidf;
       break;
     }
-    j++;
-    if(j==H->size) break;
   }
   return 0;
 }
@@ -547,7 +549,7 @@ int HVhash(int id,int size){
   id^= (id << 13);
   id^= (id >> 17);
   id^= (id << 5);
-  return abs(id % size);
+  return abs(id) % size;
 
 }
 
@@ -566,13 +568,15 @@ HVector* CreateHVector(int size){ //Dimiourgia enos neou WHash
 
 
 HVector* InsertHVector(HVector* H,int key,double value){	//Eisagei ena neo value stho WHash
-	int j=0,index;
+	int index,j=0;
 
   while(1){ //Evresi tou bucket pou tha paei to neo product
     if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish whashf
       index=HVhash(key,H->size);
+			j=1;
     }else{
-      index=(index+j*j)%(H->size);
+      index++;
+			if(index>=H->size) index-=H->size;
     }
     if(H[index].key==-1){  //Ean einai adio to bucket tha isagoume se afto thn leksh
 			H->count++;
@@ -581,7 +585,6 @@ HVector* InsertHVector(HVector* H,int key,double value){	//Eisagei ena neo value
 			H[index].value=value;
       break;
     }
-    j++;
   }
   float n=(1.0*H->count)/H->size;
   if(n>=0.8){ //Ean h plirotita ftasei to 80% kanei rehash
@@ -621,19 +624,19 @@ double HVSumValues(HVector* H){
 }
 
 double HVGetValue(HVector* H,int key){
-	int j=0,index;
+	int index,j=0;
 
   while(1){ //Evresi tou bucket pou tha paei to neo product
     if(!j){ //Sthn proth epanalipsh ipologizoume mono thn sinartish whashf
       index=HVhash(key,H->size);
     }else{
-      index=(index+j*j)%(H->size);
+      index++;
+			if(index>=H->size) index-=H->size;
     }
     if(H[index].key==key){  //Ean einai adio to bucket tha isagoume se afto thn leks
 			return H[index].value;
       break;
     }
-    j++;
   }
 	return -1;
 }

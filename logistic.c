@@ -6,6 +6,18 @@
 #include "logistic.h"
 
 
+Model* ModelIinit(int size){
+	Model* model=malloc(sizeof(Model));
+	model->array_size=2*size;
+  model->weight_array=malloc(sizeof(double)*(model->array_size));
+  memset(model->weight_array, 0,(model->array_size)*sizeof(double));
+	return model;
+}
+
+void FreeModel(Model* model){
+	free(model->weight_array);
+	free(model);
+}
 HVector* GetCameraVector(char* camera_id, Hash* H){
 	NList *L;
 	int i=0,j=0,in;
@@ -135,7 +147,6 @@ Input* InputMake(char* filename1,char* filename2,Hash* H){
 			second=strdup(token);
 			F=GetCameraVector(first,H);	//Pernoume to vector ths proths kameras
 			S=GetCameraVector(second,H);	//Pernoume to vector ths defterhs kameras
-			//printf("paw sta %s kai %s\n",first,second );
 			Con=VectorConcat(F,S,size);	//Ipologizoume to concatenation
 
 			input->Cons=realloc(input->Cons, (count+1)*sizeof(HVector*));
@@ -161,7 +172,7 @@ Input* InputMake(char* filename1,char* filename2,Hash* H){
 
 
 
-Model Training(Model model,Input* input,Hash* H,JobSheduler* Sheduler){
+Model* Training(Model* model,Input* input,Hash* H,JobSheduler* Sheduler){
 
   int   i,j,start=0,limit,msize=10,curr=0;
 	double w,b;
@@ -176,11 +187,11 @@ Model Training(Model model,Input* input,Hash* H,JobSheduler* Sheduler){
 			array[curr]=malloc(sizeof(TrainStruct)*Sheduler->num);
 		}
 		for(i=0 ; i<Sheduler->num ; i++ ){	//Gia kathe thread ftiakse mia domh TrainStruct kai arxikopieise thn
-			array[curr][i].w=malloc(model.array_size*sizeof(double));
-			for(j=0 ; j<model.array_size ; j++){
-				array[curr][i].w[j]=model.weight_array[j];
+			array[curr][i].w=malloc(model->array_size*sizeof(double));
+			for(j=0 ; j<model->array_size ; j++){
+				array[curr][i].w[j]=model->weight_array[j];
 			}
-			array[curr][i].b=model.b;
+			array[curr][i].b=model->b;
 			array[curr][i].input=input;
 			array[curr][i].start=start;
 			start+=1000;
@@ -194,23 +205,22 @@ Model Training(Model model,Input* input,Hash* H,JobSheduler* Sheduler){
 		JSWaitalltasks(Sheduler);	//Perimene na teleiosoun ta threads
 		limit=i;
 		if(start==((input->size)+1)) limit++;
-		for(i=0 ; i<model.array_size ; i++){	//arxikopieise to w kai to b
+		for(i=0 ; i<model->array_size ; i++){	//arxikopieise to w kai to b
 			w=0;
 			for(j=0 ; j<limit ; j++){
 				w+=array[curr][j].w[i];
 			}
 			w=w/limit;
-			model.weight_array[i]=w;
+			model->weight_array[i]=w;
 		}
 		b=0;
 		for(i=0 ; i<limit ; i++){
 			b+=array[curr][i].b;
 		}
 		b=b/limit;
-		model.b=b;
+		model->b=b;
 		curr++;
 	}
-	JSWaitalltasks(Sheduler);
 	for(int r=0 ; r<msize ; r++){	//Apodesmefse to array
 		if(r<curr){
 			for(int t=0 ; t<Sheduler->num ; t++){
@@ -250,7 +260,7 @@ void JobTraining(void *args){
 }
 
 
-void Testing(char* filename,Model model,Hash* H){
+void Testing(char* filename,Model* model,Hash* H){
   FILE* fptr = fopen(filename, "r");
   int tcount,match;
   char line[300];
@@ -285,12 +295,12 @@ void Testing(char* filename,Model model,Hash* H){
    }
    F=GetCameraVector(first,H);
    S=GetCameraVector(second,H);
-   Con=VectorConcat(F,S,model.array_size/2);
-   p=Predict(&(model.weight_array),&(model.b),Con);
+   Con=VectorConcat(F,S,(model->array_size)/2);
+   p=Predict(&(model->weight_array),&(model->b),Con);
 	 double cor;
    cor=1-p;
    sum++;
-   if(cor>0.35){
+   if(cor>0.4){
      if(!match) correct++;
    }else{
      if(match)correct++;
@@ -375,7 +385,7 @@ double Newpred(double* w,double b,HVector* F,HVector* S,int dif){//Vriskei to pr
 	return sum;
 }
 
-void TestAndAdd(Hash* H,Model model,JobSheduler* Sheduler,Input** input,double threshold){
+void TestAndAdd(Hash* H,Model* model,JobSheduler* Sheduler,Input** input,double threshold){
 	Job* job;
 	int i,sum,who=0,start=1,msize=10,curr=0;
 	TestStruct** current=malloc(sizeof(TestStruct*)*msize);
@@ -395,8 +405,7 @@ void TestAndAdd(Hash* H,Model model,JobSheduler* Sheduler,Input** input,double t
 			start+=1000;
 			if(start>=(sum-1)) start=sum-1;
 			current[curr][i].end=start;
-			current[curr][i].b=model.b;
-			current[curr][i].w=model.weight_array;
+			current[curr][i].model=model;
 			current[curr][i].threshold=threshold;
 			current[curr][i].input=*input;
 			current[curr][i].hash=H;
@@ -415,8 +424,6 @@ void TestAndAdd(Hash* H,Model model,JobSheduler* Sheduler,Input** input,double t
 		JSWaitalltasks(Sheduler); //perimene na teliosoun ta threads
 		curr++;
 	}
-
-	JSWaitalltasks(Sheduler);
 	for(int k=0 ; k<curr ; k++){
 		free(current[k]);
 	}
@@ -436,7 +443,7 @@ void TestData(void* args){
 	for(j=(argument->start) ; j < (argument->end) ; j++){
 		Nother=argument->nodes[j];
 		S=Nother->vector;	//Apothikevo to vector
-		p=Newpred((argument->w),(argument->b),F,S,1000);	//Vrisko to predict
+		p=Newpred((argument->model->weight_array),(argument->model->b),F,S,1000);	//Vrisko to predict
 		if((p<(argument->threshold)) || (p>(1-(argument->threshold)))){ //Ean einai isxhrh h pithanothta
 			if(p<(argument->threshold)){
 				ismatch=0;
@@ -460,7 +467,7 @@ void TestData(void* args){
 				  }
 
 					//Vriskoume to concatenation kai to isagoume sto input
-					Con=VectorConcat(F,S,1000);
+					Con=VectorConcat(F,S,(argument->model->array_size)/2);
 
 					argument->input->Cons=realloc(argument->input->Cons, (argument->input->size+1)*sizeof(HVector*));
 	 				argument->input->Cons[argument->input->size] = Con;
@@ -505,15 +512,14 @@ void MakeArrays(Hash* H,int* s,NList*** nodes){ //Dimiourgo ena pinaka me NList 
 	*nodes=nl;
 }
 
-Model RepetitiveTaining(Input* input,Hash* H,JobSheduler* Sheduler){
+Model* RepetitiveTaining(Input* input,Hash* H,JobSheduler* Sheduler){
 	int size = H->Head->Next->vec_size,ep=1;
-	Model model;
+	Model* model;
 	double threshold=0.1,stepvalue=0.1;
-	model.array_size=2*size;
-  model.weight_array=malloc(sizeof(double)*(model.array_size));
-  memset(model.weight_array, 0,(model.array_size)*sizeof(double));
-	model.b=0;
-	while (threshold <=0.3){
+	model=ModelIinit(size);
+
+	model->b=0;
+	while (threshold < 0.35){
 		model = Training(model,input,H,Sheduler);
 		printf("Just finished the training for %d time\n",ep);
 		TestAndAdd(H,model,Sheduler,&input,threshold);
